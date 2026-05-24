@@ -234,12 +234,22 @@ window.addEventListener('DOMContentLoaded', async () => {
   initEmojiSelectorGrid();
   setupEventListeners();
 
-  // 检查是否已登录（有有效session）
-  const sessionUser = localStorage.getItem('zi_lu_session');
-  if (sessionUser) {
-    // 已有登录会话，直接进入
-    await startAppAfterAuth();
-    return;
+  // 检查是否已登录（验证session token）
+  const sessionToken = localStorage.getItem('zi_lu_session');
+  if (sessionToken) {
+    const storedAuth = localStorage.getItem('zi_lu_auth');
+    if (storedAuth) {
+      try {
+        const authData = JSON.parse(storedAuth);
+        const valid = await verifySessionToken(authData.username, authData.passwordHash, sessionToken);
+        if (valid) {
+          await startAppAfterAuth();
+          return;
+        }
+      } catch (_) {}
+    }
+    // session无效，清理
+    localStorage.removeItem('zi_lu_session');
   }
 
   const hasAuth = localStorage.getItem('zi_lu_auth') !== null;
@@ -761,6 +771,16 @@ function setupEventListeners() {
   DOM.btnOpenSettingsMobile.addEventListener('click', openSettingsHandler);
   DOM.btnCloseSettingsDialog.addEventListener('click', () => DOM.settingsDialog.close());
   DOM.btnSaveSettings.addEventListener('click', () => DOM.settingsDialog.close());
+
+  // 退出登录
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      if (confirm('确定要退出登录吗？\n\n退出后需要重新输入账号密码。')) {
+        handleLogout();
+      }
+    });
+  }
 
   // E. [NEW] 绑定卡片颜色透过率滑动条事件
   if (DOM.bgTransmittanceSlider) {
@@ -3290,31 +3310,62 @@ async function verifyPassword(password, storedHash) {
   return await hashPassword(password) === storedHash;
 }
 
+const SESSION_SECRET = 'ZL-SESSION-KEY-2024';
+
+async function generateSessionToken(username, passwordHash) {
+  const enc = new TextEncoder();
+  const data = enc.encode(username + ':' + passwordHash + ':' + SESSION_SECRET);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return _ab2hex(hash);
+}
+
+async function verifySessionToken(username, passwordHash, token) {
+  const expected = await generateSessionToken(username, passwordHash);
+  return expected === token;
+}
+
 async function _authCloudKey(username) {
   const enc = new TextEncoder();
   const hash = await crypto.subtle.digest('SHA-256', enc.encode('AUTH-KEY:' + username));
   return 'AUTH-' + _ab2hex(hash).substring(0, 16);
 }
 
-async function uploadAuthToCloud(username, passwordHash) {
+// 上传认证信息到云端（用密码加密，syncToken 一并存储方便其他设备同步数据）
+async function uploadAuthToCloud(username, password, passwordHash) {
   try {
     const key = await _authCloudKey(username);
+    const payload = JSON.stringify({ username, passwordHash, syncToken: state.syncToken || '' });
+    const encrypted = await encryptData(password, payload);
     await fetch(`${KVDB_ENDPOINT}${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, passwordHash })
+      body: JSON.stringify({ v: 2, d: encrypted })
     });
   } catch (e) {
     console.warn('上传认证信息到云端失败:', e);
+    throw e;
   }
 }
 
-async function fetchAuthFromCloud(username) {
+// 从云端拉取认证信息并用密码解密，返回 { username, passwordHash, syncToken } 或 null
+async function fetchAuthFromCloud(username, password) {
   try {
     const key = await _authCloudKey(username);
     const res = await fetch(`${KVDB_ENDPOINT}${key}`);
     if (!res.ok) return null;
-    const data = await res.json();
+    const raw = await res.text();
+    let data;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed.v === 2 && parsed.d) {
+        const decrypted = await decryptData(password, parsed.d);
+        data = JSON.parse(decrypted);
+      } else {
+        data = parsed; // 兼容旧明文格式
+      }
+    } catch {
+      return null;
+    }
     if (data && data.username === username && data.passwordHash) {
       return data;
     }
@@ -3322,6 +3373,17 @@ async function fetchAuthFromCloud(username) {
   } catch (e) {
     console.warn('从云端获取认证信息失败:', e);
     return null;
+  }
+}
+
+// 检查云端是否已有该用户名
+async function checkCloudUsernameExists(username) {
+  try {
+    const key = await _authCloudKey(username);
+    const res = await fetch(`${KVDB_ENDPOINT}${key}`);
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -3373,8 +3435,20 @@ function setupAuth(mode) {
       return;
     }
 
+    if (username.length < 2) {
+      errorEl.textContent = '账号至少需要 2 个字符';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (password.length < 6) {
+      errorEl.textContent = '密码至少需要 6 个字符';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     if (currentMode === 'register') {
-      // 注册
+      // 检查本地是否已注册
       const existingAuth = localStorage.getItem('zi_lu_auth');
       if (existingAuth) {
         const parsed = JSON.parse(existingAuth);
@@ -3389,12 +3463,28 @@ function setupAuth(mode) {
       submitBtn.disabled = true;
 
       try {
+        // 检查云端是否已被注册
+        const cloudExists = await checkCloudUsernameExists(username);
+        if (cloudExists) {
+          errorEl.textContent = '该账号已被注册，请更换账号或直接登录';
+          errorEl.style.display = 'block';
+          submitBtn.textContent = '注册';
+          submitBtn.disabled = false;
+          return;
+        }
+
         const hash = await hashPassword(password);
         const authData = { username, passwordHash: hash };
         localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
 
-        // 上传认证信息到云端，其他设备也能登录
-        uploadAuthToCloud(username, hash);
+        // 上传加密认证信息到云端（失败不阻塞本地注册）
+        let cloudWarning = '';
+        try {
+          await uploadAuthToCloud(username, password, hash);
+        } catch (cloudErr) {
+          console.warn('云端注册同步失败（本地数据已保存）:', cloudErr);
+          cloudWarning = '（云端同步失败，可在设置中重试）';
+        }
 
         // 新用户空白开始
         initEmptyData();
@@ -3402,11 +3492,12 @@ function setupAuth(mode) {
         await saveDatabase();
 
         // 保存登录会话（下次自动登录）
-        localStorage.setItem('zi_lu_session', username);
+        const sessionToken = await generateSessionToken(username, hash);
+        localStorage.setItem('zi_lu_session', sessionToken);
 
         // 显示成功提示
         errorEl.style.color = '#4ade80';
-        errorEl.textContent = '注册成功！正在进入...';
+        errorEl.textContent = '注册成功！' + cloudWarning + ' 正在进入...';
         errorEl.style.display = 'block';
         submitBtn.textContent = '注册';
         submitBtn.disabled = false;
@@ -3416,7 +3507,7 @@ function setupAuth(mode) {
           errorEl.style.color = '';
           errorEl.style.display = 'none';
           await startAppAfterAuth();
-        }, 1000);
+        }, 1200);
       } catch (err) {
         console.error('注册失败:', err);
         errorEl.style.color = '';
@@ -3432,18 +3523,20 @@ function setupAuth(mode) {
         submitBtn.disabled = true;
 
         let authData = null;
+        let cloudSyncToken = null;
         const stored = localStorage.getItem('zi_lu_auth');
         if (stored) {
           authData = JSON.parse(stored);
           if (authData.username !== username) authData = null;
         }
 
-        // 本地没有 → 尝试从云端拉取
+        // 本地没有 → 尝试从云端拉取（密码解密验证）
         if (!authData) {
-          const cloudAuth = await fetchAuthFromCloud(username);
+          const cloudAuth = await fetchAuthFromCloud(username, password);
           if (cloudAuth) {
-            authData = cloudAuth;
-            localStorage.setItem('zi_lu_auth', JSON.stringify(cloudAuth));
+            authData = { username: cloudAuth.username, passwordHash: cloudAuth.passwordHash };
+            cloudSyncToken = cloudAuth.syncToken || '';
+            localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
           }
         }
 
@@ -3465,7 +3558,13 @@ function setupAuth(mode) {
         }
 
         // 保存登录会话（下次自动登录）
-        localStorage.setItem('zi_lu_session', username);
+        const sessionToken = await generateSessionToken(authData.username, authData.passwordHash);
+        localStorage.setItem('zi_lu_session', sessionToken);
+
+        // 从云端登录时恢复同步码，使两端数据互通
+        if (cloudSyncToken && !state.syncToken) {
+          state.syncToken = cloudSyncToken;
+        }
 
         dialog.close();
         submitBtn.textContent = '登录';
@@ -3480,6 +3579,12 @@ function setupAuth(mode) {
       }
     }
   });
+}
+
+function handleLogout() {
+  localStorage.removeItem('zi_lu_session');
+  localStorage.removeItem('zi_lu_auth');
+  location.reload();
 }
 
 function escapeJS(str) {
