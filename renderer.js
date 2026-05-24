@@ -365,7 +365,21 @@ function getDataToSave() {
 }
 
 function saveLocalWebStorage() {
-  localStorage.setItem('zi_lu_habits_db', JSON.stringify(getDataToSave()));
+  try {
+    localStorage.setItem('zi_lu_habits_db', JSON.stringify(getDataToSave()));
+  } catch (e) {
+    console.warn('localStorage 存储空间不足，尝试清理大体积数据:', e);
+    // 如果是配额超限，尝试移除自定义背景图后重试
+    if (state.customBackground) {
+      state.customBackground = '';
+      try {
+        localStorage.setItem('zi_lu_habits_db', JSON.stringify(getDataToSave()));
+        alert('存储空间不足，已自动清除自定义背景图以释放空间。');
+        return;
+      } catch (_) {}
+    }
+    alert('存储空间不足，请导出备份后清理部分数据。');
+  }
 }
 
 // 5. 空白数据初始化（首次使用）
@@ -570,10 +584,12 @@ function applyCustomBackground() {
 function applyCardTransmittance() {
   const transmittance = state.cardTransmittance !== undefined ? state.cardTransmittance : 58;
   const alpha = (100 - transmittance) / 100;
-  
-  // 更新 Document :root 中的 CSS 变量
-  document.documentElement.style.setProperty('--card-bg', `rgba(11, 15, 26, ${alpha})`);
-  
+
+  // 仅在默认主题下设置 --card-bg，避免覆盖主题色
+  if (!state.uiTheme || state.uiTheme === 'default') {
+    document.documentElement.style.setProperty('--card-bg', `rgba(11, 15, 26, ${alpha})`);
+  }
+
   // 同步更新设置面板中的 UI
   if (DOM.bgTransmittanceSlider) {
     DOM.bgTransmittanceSlider.value = transmittance;
@@ -758,12 +774,13 @@ function setupEventListeners() {
   }
 
   // F. 云端同步配置与绑定
-  DOM.btnGenerateSync.addEventListener('click', () => {
+  DOM.btnGenerateSync.addEventListener('click', async () => {
     const randHex = crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
     const randomCode = "SYNC-" + randHex;
     state.syncToken = randomCode;
     DOM.syncCodeText.innerText = randomCode;
     DOM.syncCodeInput.value = randomCode;
+    await saveDatabase();
     alert(`已生成云同步码：${randomCode}\n请复制保存此同步码！`);
   });
 
@@ -842,7 +859,7 @@ function setupEventListeners() {
   // G. 数据备份导出导入 (桌面端用系统对话框，移动端用 Blob/FileReader)
   if (isElectronEnv()) {
     DOM.btnExportDb.addEventListener('click', async () => {
-      const dataToExport = { habits: state.habits, checkIns: state.checkIns };
+      const dataToExport = getDataToSave();
       try {
         const res = await window.electronAPI.exportDB(dataToExport);
         if (res && res.success) alert(`数据物理备份导出成功！\n文件存放在：${res.path}`);
@@ -855,8 +872,19 @@ function setupEventListeners() {
       try {
         const res = await window.electronAPI.importDB();
         if (res && res.success && res.data) {
-          state.habits = res.data.habits;
-          state.checkIns = res.data.checkIns;
+          const db = res.data;
+          state.habits = db.habits || [];
+          state.checkIns = db.checkIns || {};
+          state.diaries = db.diaries || {};
+          state.syncToken = db.syncToken || '';
+          state.nickname = db.nickname || '自律冒险者';
+          state.avatar = db.avatar || 'cow';
+          state.friends = db.friends || [];
+          state.couple = db.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 };
+          state.uiTheme = db.uiTheme || 'default';
+          state.ticketsCount = db.ticketsCount || 0;
+          state.rewardedMilestones = db.rewardedMilestones || [];
+          state.isOnboarded = db.isOnboarded !== undefined ? db.isOnboarded : true;
           await saveDatabase();
           refreshUI();
           alert(`数据本地备份导入合并成功！自律大盘已更新。`);
@@ -1645,7 +1673,7 @@ function startReminderScheduler() {
         checkReminders();
         // 如果离线太久，顺手同步一次
         if (state.syncToken && state.autoSync) {
-          performCloudSyncPull();
+          performCloudSyncPull().catch(() => {});
         }
       }
     }
@@ -1964,6 +1992,16 @@ function switchPage(page) {
     btn.classList.toggle('active', btn.dataset.page === page);
   });
 
+  // 手机端导航按钮高亮
+  const mobileNavBtns = {
+    home: document.getElementById('btn-nav-home-mobile'),
+    diary: document.getElementById('btn-nav-diary-mobile'),
+    social: document.getElementById('btn-nav-social-mobile')
+  };
+  Object.entries(mobileNavBtns).forEach(([p, el]) => {
+    if (el) el.style.opacity = p === page ? '1' : '0.5';
+  });
+
   const statsCard = document.getElementById('mobile-stats-card');
 
   if (page === 'diary') {
@@ -1979,6 +2017,11 @@ function switchPage(page) {
     if (statsCard) { statsCard.style.setProperty('display', 'none', 'important'); }
     renderSocialPage();
   } else {
+    // 离开社交页时停止聊天轮询
+    if (chatPollInterval) {
+      clearInterval(chatPollInterval);
+      chatPollInterval = null;
+    }
     homeSections.forEach(el => el.style.display = '');
     if (diaryPage) { diaryPage.style.display = 'none'; }
     if (socialPage) { socialPage.style.display = 'none'; }
@@ -3341,13 +3384,13 @@ function setupAuth(mode) {
       errorEl.style.display = 'block';
       errorEl.style.color = '#4ade80';
       errorEl.textContent = '注册成功！正在进入...';
+      submitBtn.textContent = '注册';
+      submitBtn.disabled = false;
 
       setTimeout(async () => {
         dialog.close();
         errorEl.style.color = '';
         errorEl.style.display = 'none';
-        submitBtn.textContent = '注册';
-        submitBtn.disabled = false;
         await startAppAfterAuth();
       }, 1000);
     } else {

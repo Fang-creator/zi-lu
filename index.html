@@ -254,7 +254,7 @@
         <div class="resurrect-banner glass" id="resurrect-banner-pane" style="display: none;">
           <div class="resurrect-banner-left">
             <i class="fa-solid fa-circle-exclamation"></i>
-            <span>当天打卡未达标（50% 完成度），连续打卡中断！</span>
+            <span>该日打卡未达标（低于50% 完成度），连续打卡中断！</span>
           </div>
           <button class="btn btn-primary btn-sm btn-resurrect" id="btn-use-ticket-resurrect">
             <i class="fa-solid fa-ticket"></i>
@@ -493,7 +493,7 @@
           <!-- 添加好友表单 -->
           <div class="add-friend-panel glass">
             <div class="form-group inline-form-group">
-              <input type="text" id="add-friend-token-input" placeholder="输入好友的同步码 (例如: SYNC-123456)" maxlength="15">
+              <input type="text" id="add-friend-token-input" placeholder="输入好友的同步码 (例如: SYNC-123456)" maxlength="45">
               <button class="btn btn-primary" id="btn-add-friend-submit">
                 <i class="fa-solid fa-user-plus"></i> 添加好友
               </button>
@@ -525,7 +525,7 @@
             <h3>自律情侣空间</h3>
             <p>输入伴侣的同步码，将你们的自律挑战紧密相连。绑定后，你们将拥有专属的情侣打卡墙、在一起时间纪念，以及浪漫的私密聊天室！</p>
             <div class="bind-couple-form">
-              <input type="text" id="bind-partner-token-input" placeholder="输入另一半的的同步码 (SYNC-XXXXXX)" maxlength="15">
+              <input type="text" id="bind-partner-token-input" placeholder="输入另一半的的同步码 (SYNC-XXXXXX)" maxlength="45">
               <button class="btn btn-primary" id="btn-bind-partner-submit">
                 <i class="fa-solid fa-heart-circle-plus"></i> 绑定情侣关系
               </button>
@@ -654,7 +654,7 @@
         <h3 id="modal-title">添加新习惯</h3>
         <button class="close-btn" id="btn-close-dialog">&times;</button>
       </div>
-      <form id="habit-form" method="dialog">
+      <form id="habit-form">
         <div class="form-group">
           <label for="habit-name-input">习惯名称 <span class="required">*</span></label>
           <input type="text" id="habit-name-input" placeholder="例如：晨跑 3公里" required maxlength="25">
