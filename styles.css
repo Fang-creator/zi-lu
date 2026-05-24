@@ -888,7 +888,19 @@ body {
 .close-btn { background: transparent; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
 
 /* 登录/注册弹窗 */
-.auth-dialog { max-width: 400px; }
+.auth-dialog {
+  max-width: 400px;
+  background: rgba(15, 20, 40, 0.95) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.auth-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
 .auth-content { text-align: center; padding: 28px 24px 20px; }
 .auth-header { margin-bottom: 20px; }
 .auth-brand-icon { font-size: 36px; margin-bottom: 8px; }

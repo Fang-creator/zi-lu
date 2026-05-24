@@ -234,7 +234,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   initEmojiSelectorGrid();
   setupEventListeners();
 
-  // 检查是否需要登录
+  // 检查是否已登录（有有效session）
+  const sessionUser = localStorage.getItem('zi_lu_session');
+  if (sessionUser) {
+    // 已有登录会话，直接进入
+    await startAppAfterAuth();
+    return;
+  }
+
   const hasAuth = localStorage.getItem('zi_lu_auth') !== null;
   setupAuth(hasAuth ? 'login' : 'register');
   document.getElementById('auth-dialog').showModal();
@@ -3316,6 +3323,9 @@ function setupAuth(mode) {
         }
       }
 
+      submitBtn.textContent = '注册中...';
+      submitBtn.disabled = true;
+
       const hash = await hashPassword(password);
       localStorage.setItem('zi_lu_auth', JSON.stringify({ username, passwordHash: hash }));
 
@@ -3324,8 +3334,22 @@ function setupAuth(mode) {
       state.nickname = username;
       await saveDatabase();
 
-      dialog.close();
-      await startAppAfterAuth();
+      // 保存登录会话（下次自动登录）
+      localStorage.setItem('zi_lu_session', username);
+
+      // 显示成功提示
+      errorEl.style.display = 'block';
+      errorEl.style.color = '#4ade80';
+      errorEl.textContent = '注册成功！正在进入...';
+
+      setTimeout(async () => {
+        dialog.close();
+        errorEl.style.color = '';
+        errorEl.style.display = 'none';
+        submitBtn.textContent = '注册';
+        submitBtn.disabled = false;
+        await startAppAfterAuth();
+      }, 1000);
     } else {
       // 登录
       const stored = localStorage.getItem('zi_lu_auth');
@@ -3348,6 +3372,9 @@ function setupAuth(mode) {
         errorEl.style.display = 'block';
         return;
       }
+
+      // 保存登录会话（下次自动登录）
+      localStorage.setItem('zi_lu_session', username);
 
       dialog.close();
       await startAppAfterAuth();
