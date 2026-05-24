@@ -131,10 +131,7 @@
           <i class="fa-solid fa-sliders"></i>
           <span>系统设置</span>
         </button>
-        <button class="btn btn-danger-outline" id="btn-logout" title="退出登录" style="margin-top:6px;width:100%;justify-content:center;">
-          <i class="fa-solid fa-right-from-bracket"></i>
-          <span>退出登录</span>
-        </button>
+
       </div>
     </aside>
 
@@ -620,37 +617,7 @@
     </main>
   </div>
 
-  <!-- 0. 登录/注册弹窗 -->
-  <dialog class="modal glass auth-dialog" id="auth-dialog">
-    <div class="modal-content auth-content">
-      <div class="auth-header">
-        <div class="auth-brand-icon">
-          <i class="fa-solid fa-crown neon-glow"></i>
-        </div>
-        <h2 class="auth-title">自律打卡</h2>
-        <p class="auth-subtitle">HABIT TRACKER</p>
-      </div>
 
-      <!-- 登录表单 -->
-      <form class="auth-form" id="auth-login-form" onsubmit="return false;">
-        <div class="auth-tabs">
-          <button class="auth-tab-btn active" id="auth-tab-login" type="button">登录</button>
-          <button class="auth-tab-btn" id="auth-tab-register" type="button">注册</button>
-        </div>
-        <div class="form-group">
-          <label for="auth-username">账号</label>
-          <input type="text" id="auth-username" placeholder="请输入账号" maxlength="20" required autocomplete="username" autocapitalize="off" autocorrect="off">
-        </div>
-        <div class="form-group">
-          <label for="auth-password">密码</label>
-          <input type="password" id="auth-password" placeholder="请输入密码" maxlength="30" required autocomplete="current-password">
-        </div>
-        <p class="auth-error" id="auth-error" style="display:none;"></p>
-        <button type="submit" class="btn btn-primary auth-submit-btn" id="auth-submit-btn">登录</button>
-        <p class="auth-hint" id="auth-hint">首次使用？点击上方"注册"创建新账号</p>
-      </form>
-    </div>
-  </dialog>
 
   <!-- 3. 添加/编辑习惯模态弹窗 -->
   <dialog class="modal glass" id="habit-form-dialog">
@@ -835,11 +802,8 @@
         </div>
       </div>
 
-      <div class="form-actions" style="display: flex; gap: 10px; width: 100%;">
-        <button class="btn btn-danger-outline" id="btn-logout-mobile" style="flex: 1; justify-content: center; margin-top: 0;">
-          <i class="fa-solid fa-right-from-bracket"></i> 退出登录
-        </button>
-        <button class="btn btn-primary" id="btn-save-settings" style="flex: 1; margin-top: 0;">关闭并应用</button>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btn-save-settings">关闭并应用</button>
       </div>
     </div>
   </dialog>
