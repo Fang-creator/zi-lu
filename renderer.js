@@ -3298,12 +3298,117 @@ function _ab2hex(buf) {
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// 纯 JS 版 SHA-256，用于在非 HTTPS / 局域网 HTTP 等移动端/非安全上下文中作为 SubtleCrypto 的 Fallback
+function sha256_pure(str) {
+  const utf8 = [];
+  for (let i = 0; i < str.length; i++) {
+    let charcode = str.charCodeAt(i);
+    if (charcode < 0x80) utf8.push(charcode);
+    else if (charcode < 0x800) {
+      utf8.push(0xc0 | (charcode >> 6), 0x80 | (charcode & 0x3f));
+    }
+    else if (charcode < 0xd800 || charcode >= 0xe000) {
+      utf8.push(0xe0 | (charcode >> 12), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f));
+    }
+    else {
+      i++;
+      charcode = 0x10000 + (((charcode & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff));
+      utf8.push(0xf0 | (charcode >> 18), 0x80 | ((charcode >> 12) & 0x3f), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f));
+    }
+  }
+
+  const utf8_array = new Uint8Array(utf8);
+  const words = new Int32Array(Math.ceil((utf8_array.length + 9) / 64) * 16);
+  for (let i = 0; i < utf8_array.length; i++) {
+    words[i >> 2] |= utf8_array[i] << (24 - (i % 4) * 8);
+  }
+  
+  // Padding
+  const byteCount = utf8_array.length;
+  words[byteCount >> 2] |= 0x80 << (24 - (byteCount % 4) * 8);
+  const totalBits = byteCount * 8;
+  words[words.length - 1] = totalBits & 0xffffffff;
+  words[words.length - 2] = Math.floor(totalBits / 0x100000000);
+
+  const h = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+  ];
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  const w = new Int32Array(64);
+  const H = new Int32Array(h);
+
+  for (let chunkStart = 0; chunkStart < words.length; chunkStart += 16) {
+    for (let i = 0; i < 16; i++) {
+      w[i] = words[chunkStart + i];
+    }
+    for (let i = 16; i < 64; i++) {
+      const w15 = w[i - 15];
+      const s0 = ((w15 >>> 7) | (w15 << 25)) ^
+                 ((w15 >>> 18) | (w15 << 14)) ^
+                 (w15 >>> 3);
+      const w2 = w[i - 2];
+      const s1 = ((w2 >>> 17) | (w2 << 15)) ^
+                 ((w2 >>> 19) | (w2 << 13)) ^
+                 (w2 >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], hVal = H[7];
+
+    for (let i = 0; i < 64; i++) {
+      const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (hVal + S1 + ch + k[i] + w[i]) | 0;
+      const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) | 0;
+
+      hVal = g;
+      g = f;
+      f = e;
+      e = (d + temp1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (temp1 + temp2) | 0;
+    }
+
+    H[0] = (H[0] + a) | 0;
+    H[1] = (H[1] + b) | 0;
+    H[2] = (H[2] + c) | 0;
+    H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0;
+    H[5] = (H[5] + f) | 0;
+    H[6] = (H[6] + g) | 0;
+    H[7] = (H[7] + hVal) | 0;
+  }
+
+  return Array.from(H, val => {
+    const hex = (val >>> 0).toString(16);
+    return hex.padStart(8, '0');
+  }).join('');
+}
+
 async function hashPassword(password) {
-  if (!crypto.subtle) throw new Error('浏览器不支持安全加密，请使用 HTTPS 访问');
-  const enc = new TextEncoder();
-  const data = enc.encode(AUTH_SALT + ':' + password);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return _ab2hex(hash);
+  if (typeof crypto !== 'undefined' && crypto.subtle && crypto.subtle.digest) {
+    const enc = new TextEncoder();
+    const data = enc.encode(AUTH_SALT + ':' + password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return _ab2hex(hash);
+  } else {
+    return sha256_pure(AUTH_SALT + ':' + password);
+  }
 }
 
 async function verifyPassword(password, storedHash) {
@@ -3313,10 +3418,14 @@ async function verifyPassword(password, storedHash) {
 const SESSION_SECRET = 'ZL-SESSION-KEY-2024';
 
 async function generateSessionToken(username, passwordHash) {
-  const enc = new TextEncoder();
-  const data = enc.encode(username + ':' + passwordHash + ':' + SESSION_SECRET);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return _ab2hex(hash);
+  if (typeof crypto !== 'undefined' && crypto.subtle && crypto.subtle.digest) {
+    const enc = new TextEncoder();
+    const data = enc.encode(username + ':' + passwordHash + ':' + SESSION_SECRET);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return _ab2hex(hash);
+  } else {
+    return sha256_pure(username + ':' + passwordHash + ':' + SESSION_SECRET);
+  }
 }
 
 async function verifySessionToken(username, passwordHash, token) {
@@ -3325,9 +3434,14 @@ async function verifySessionToken(username, passwordHash, token) {
 }
 
 async function _authCloudKey(username) {
-  const enc = new TextEncoder();
-  const hash = await crypto.subtle.digest('SHA-256', enc.encode('AUTH-KEY:' + username));
-  return 'AUTH-' + _ab2hex(hash).substring(0, 16);
+  if (typeof crypto !== 'undefined' && crypto.subtle && crypto.subtle.digest) {
+    const enc = new TextEncoder();
+    const hash = await crypto.subtle.digest('SHA-256', enc.encode('AUTH-KEY:' + username));
+    return 'AUTH-' + _ab2hex(hash).substring(0, 16);
+  } else {
+    const hash = sha256_pure('AUTH-KEY:' + username);
+    return 'AUTH-' + hash.substring(0, 16);
+  }
 }
 
 // 上传认证信息到云端（用密码加密，syncToken 一并存储方便其他设备同步数据）
@@ -3376,12 +3490,21 @@ async function fetchAuthFromCloud(username, password) {
   }
 }
 
-// 检查云端是否已有该用户名
+// 检查云端是否已有该用户名（大小写兼容性检查）
 async function checkCloudUsernameExists(username) {
   try {
     const key = await _authCloudKey(username);
     const res = await fetch(`${KVDB_ENDPOINT}${key}`);
-    return res.ok;
+    if (res.ok) return true;
+
+    // 如果有大写，则同步检查全小写版本的 Key 以防产生大小写重复冲突账号
+    const usernameLower = username.toLowerCase();
+    if (usernameLower !== username) {
+      const keyLower = await _authCloudKey(usernameLower);
+      const resLower = await fetch(`${KVDB_ENDPOINT}${keyLower}`);
+      return resLower.ok;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -3426,16 +3549,17 @@ function setupAuth(mode) {
   switchTab(mode);
 
   authForm?.addEventListener('submit', async () => {
-    const username = usernameInput.value.trim();
+    const usernameRaw = usernameInput.value.trim();
+    const username = usernameRaw.toLowerCase();
     const password = passwordInput.value;
 
-    if (!username || !password) {
+    if (!usernameRaw || !password) {
       errorEl.textContent = '请输入账号和密码';
       errorEl.style.display = 'block';
       return;
     }
 
-    if (username.length < 2) {
+    if (usernameRaw.length < 2) {
       errorEl.textContent = '账号至少需要 2 个字符';
       errorEl.style.display = 'block';
       return;
@@ -3452,7 +3576,7 @@ function setupAuth(mode) {
       const existingAuth = localStorage.getItem('zi_lu_auth');
       if (existingAuth) {
         const parsed = JSON.parse(existingAuth);
-        if (parsed.username === username) {
+        if (parsed.username && parsed.username.toLowerCase() === username) {
           errorEl.textContent = '该账号已存在，请直接登录';
           errorEl.style.display = 'block';
           return;
@@ -3463,7 +3587,7 @@ function setupAuth(mode) {
       submitBtn.disabled = true;
 
       try {
-        // 检查云端是否已被注册
+        // 检查云端是否已被注册（检查小写格式以绝重复账号隐患）
         const cloudExists = await checkCloudUsernameExists(username);
         if (cloudExists) {
           errorEl.textContent = '该账号已被注册，请更换账号或直接登录';
@@ -3474,7 +3598,8 @@ function setupAuth(mode) {
         }
 
         const hash = await hashPassword(password);
-        const authData = { username, passwordHash: hash };
+        // 保存原始输入的名字作为昵称，但底层的校验和 Key 均使用统一小写
+        const authData = { username: usernameRaw, passwordHash: hash };
         localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
 
         // 上传加密认证信息到云端（失败不阻塞本地注册）
@@ -3488,7 +3613,7 @@ function setupAuth(mode) {
 
         // 新用户空白开始
         initEmptyData();
-        state.nickname = username;
+        state.nickname = usernameRaw; // 采用用户注册时的原始大小写名作为昵称
         await saveDatabase();
 
         // 保存登录会话（下次自动登录）
@@ -3527,12 +3652,18 @@ function setupAuth(mode) {
         const stored = localStorage.getItem('zi_lu_auth');
         if (stored) {
           authData = JSON.parse(stored);
-          if (authData.username !== username) authData = null;
+          if (authData.username && authData.username.toLowerCase() !== username) authData = null;
         }
 
         // 本地没有 → 尝试从云端拉取（密码解密验证）
         if (!authData) {
-          const cloudAuth = await fetchAuthFromCloud(username, password);
+          // 1. 优先尝试以小写格式拉取，以匹配全新/统一小写的注册流程
+          let cloudAuth = await fetchAuthFromCloud(username, password);
+          // 2. 如果未找到且原始输入包含大小写，尝试以原始格式拉取以兼容历史账号
+          if (!cloudAuth && usernameRaw !== username) {
+            cloudAuth = await fetchAuthFromCloud(usernameRaw, password);
+          }
+          
           if (cloudAuth) {
             authData = { username: cloudAuth.username, passwordHash: cloudAuth.passwordHash };
             cloudSyncToken = cloudAuth.syncToken || '';
@@ -3557,7 +3688,7 @@ function setupAuth(mode) {
           return;
         }
 
-        // 保存登录会话（下次自动登录）
+        // 保存登录会话（使用存储的实际注册名字）
         const sessionToken = await generateSessionToken(authData.username, authData.passwordHash);
         localStorage.setItem('zi_lu_session', sessionToken);
 
