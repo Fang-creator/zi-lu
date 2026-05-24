@@ -69,15 +69,11 @@ function _base64ToArrayBuffer(base64) {
 
 async function _deriveKey(token) {
   const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw', enc.encode(token),
-    'PBKDF2', false, ['deriveKey']
-  );
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: enc.encode(CRYPTO_SALT), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
+  // 使用 SHA-256 派生密钥，比 PBKDF2 快 100 倍以上，手机上秒级完成
+  const hash = await crypto.subtle.digest('SHA-256', enc.encode(CRYPTO_SALT + ':' + token));
+  return crypto.subtle.importKey(
+    'raw', hash,
+    'AES-GCM', false,
     ['encrypt', 'decrypt']
   );
 }
