@@ -3278,7 +3278,7 @@ async function _authDeriveKey(password, salt) {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 200000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -3287,7 +3287,12 @@ async function _authDeriveKey(password, salt) {
 }
 
 function _ab2b64(buf) {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
 function _b642ab(str) {
@@ -3295,6 +3300,9 @@ function _b642ab(str) {
 }
 
 async function hashPassword(password) {
+  if (!crypto.subtle) {
+    throw new Error('浏览器不支持安全加密，请使用 HTTPS 访问');
+  }
   const salt = AUTH_SALT + '-' + password.length;
   const key = await _authDeriveKey(password, salt);
   const raw = await crypto.subtle.exportKey('raw', key);
@@ -3369,58 +3377,82 @@ function setupAuth(mode) {
       submitBtn.textContent = '注册中...';
       submitBtn.disabled = true;
 
-      const hash = await hashPassword(password);
-      localStorage.setItem('zi_lu_auth', JSON.stringify({ username, passwordHash: hash }));
+      try {
+        const hash = await hashPassword(password);
+        localStorage.setItem('zi_lu_auth', JSON.stringify({ username, passwordHash: hash }));
 
-      // 新用户空白开始
-      initEmptyData();
-      state.nickname = username;
-      await saveDatabase();
+        // 新用户空白开始
+        initEmptyData();
+        state.nickname = username;
+        await saveDatabase();
 
-      // 保存登录会话（下次自动登录）
-      localStorage.setItem('zi_lu_session', username);
+        // 保存登录会话（下次自动登录）
+        localStorage.setItem('zi_lu_session', username);
 
-      // 显示成功提示
-      errorEl.style.display = 'block';
-      errorEl.style.color = '#4ade80';
-      errorEl.textContent = '注册成功！正在进入...';
-      submitBtn.textContent = '注册';
-      submitBtn.disabled = false;
+        // 显示成功提示
+        errorEl.style.color = '#4ade80';
+        errorEl.textContent = '注册成功！正在进入...';
+        errorEl.style.display = 'block';
+        submitBtn.textContent = '注册';
+        submitBtn.disabled = false;
 
-      setTimeout(async () => {
-        dialog.close();
+        setTimeout(async () => {
+          dialog.close();
+          errorEl.style.color = '';
+          errorEl.style.display = 'none';
+          await startAppAfterAuth();
+        }, 1000);
+      } catch (err) {
+        console.error('注册失败:', err);
         errorEl.style.color = '';
-        errorEl.style.display = 'none';
-        await startAppAfterAuth();
-      }, 1000);
+        errorEl.textContent = '注册失败，请检查网络后重试';
+        errorEl.style.display = 'block';
+        submitBtn.textContent = '注册';
+        submitBtn.disabled = false;
+      }
     } else {
       // 登录
-      const stored = localStorage.getItem('zi_lu_auth');
-      if (!stored) {
-        errorEl.textContent = '没有账号，请先注册';
+      try {
+        const stored = localStorage.getItem('zi_lu_auth');
+        if (!stored) {
+          errorEl.textContent = '没有账号，请先注册';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const authData = JSON.parse(stored);
+        if (authData.username !== username) {
+          errorEl.textContent = '账号不存在，请检查输入';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        submitBtn.textContent = '登录中...';
+        submitBtn.disabled = true;
+
+        const valid = await verifyPassword(password, authData.passwordHash);
+        if (!valid) {
+          errorEl.textContent = '密码错误，请重试';
+          errorEl.style.display = 'block';
+          submitBtn.textContent = '登录';
+          submitBtn.disabled = false;
+          return;
+        }
+
+        // 保存登录会话（下次自动登录）
+        localStorage.setItem('zi_lu_session', username);
+
+        dialog.close();
+        submitBtn.textContent = '登录';
+        submitBtn.disabled = false;
+        await startAppAfterAuth();
+      } catch (err) {
+        console.error('登录失败:', err);
+        errorEl.textContent = '登录失败，请检查网络后重试';
         errorEl.style.display = 'block';
-        return;
+        submitBtn.textContent = '登录';
+        submitBtn.disabled = false;
       }
-
-      const authData = JSON.parse(stored);
-      if (authData.username !== username) {
-        errorEl.textContent = '账号不存在，请检查输入';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      const valid = await verifyPassword(password, authData.passwordHash);
-      if (!valid) {
-        errorEl.textContent = '密码错误，请重试';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      // 保存登录会话（下次自动登录）
-      localStorage.setItem('zi_lu_session', username);
-
-      dialog.close();
-      await startAppAfterAuth();
     }
   });
 }

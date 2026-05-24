@@ -922,7 +922,7 @@ body {
 
 /* 手机端适配 */
 @media (max-width: 768px) {
-  .auth-dialog { max-width: 100%; margin: 0; }
+  .auth-dialog { max-width: 100%; }
   .auth-content { padding: 20px 16px; }
   .auth-title { font-size: 19px; }
 }
