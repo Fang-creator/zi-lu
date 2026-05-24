@@ -1,0 +1,5291 @@
+/* ==========================================================================
+   双端响应式自律打卡 App - GORGEOUS CSS DESIGN SYSTEM
+   ========================================================================== */
+
+:root {
+  /* 基础颜色系统 */
+  --bg-app: hsl(222, 25%, 8%);
+  --bg-sidebar: hsl(222, 25%, 5%);
+  --bg-glass: rgba(16, 22, 35, 0.4);
+  --bg-glass-hover: rgba(26, 34, 52, 0.55);
+  --border-glass: rgba(255, 255, 255, 0.07);
+  --border-glass-focus: rgba(138, 92, 246, 0.4);
+  
+  /* 霓虹色系 */
+  --neon-violet: hsl(260, 85%, 65%);       
+  --neon-cyan: hsl(180, 85%, 48%);         
+  --neon-rose: hsl(345, 85%, 60%);         
+  --neon-green: hsl(145, 80%, 45%);        
+  
+  /* 分类颜色 */
+  --color-health: hsl(345, 85%, 60%);
+  --color-learning: hsl(243, 75%, 65%);
+  --color-work: hsl(38, 95%, 52%);
+  --color-mindset: hsl(180, 85%, 48%);
+  
+  /* 文字 */
+  --text-main: hsl(210, 40%, 96%);
+  --text-muted: hsl(210, 20%, 65%);
+  --text-dim: hsl(210, 15%, 45%);
+  
+  /* 阴影 */
+  --shadow-neon-violet: 0 0 15px rgba(138, 92, 246, 0.35);
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  
+  /* 字体 */
+  --font-family-title: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-family-body: 'Inter', system-ui, sans-serif;
+}
+
+/* 1. 重置与背景图遮罩层系统 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-body);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 自定义图片底图容器 */
+.global-background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(138, 92, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+}
+
+/* 防冲突偏光遮罩层 */
+.global-background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: transparent; /* 彻底透明，100% 完美呈现您上传图片的原本真实色彩与亮丽度！ */
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* 2. 玻璃板材 (超清透光无模糊卡片 - 水晶设计) */
+.glass {
+  background: var(--card-bg, rgba(11, 15, 26, 0.42)); /* 使用 CSS 动态变量绑定透过率，默认采用高对比度的 42% 不透明度 */
+  border: 1px solid rgba(255, 255, 255, 0.16); /* 极为精致亮丽的水晶超细边界线 */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15); /* 晶莹发光的玻璃折射内边缘 */
+  border-radius: 16px;
+  transition: background 0.15s ease, border-color 0.25s, box-shadow 0.25s; /* 优化背景透明度滑动时的实时响应 */
+}
+
+.glass-hover:hover {
+  background: rgba(20, 27, 44, 0.52);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 16px rgba(255, 255, 255, 0.08);
+}
+
+/* 3. 通用布局 Container */
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent;
+  overflow: hidden;
+}
+
+/* 4. 电脑端侧边栏 (在移动视口下隐藏) */
+.sidebar {
+  width: 290px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-glass);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  gap: 22px;
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-cyan));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  box-shadow: var(--shadow-neon-violet);
+  color: #fff;
+}
+
+.brand-info h2 {
+  font-family: var(--font-family-title);
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(to right, #ffffff, #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-info span {
+  font-size: 9px;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* 环形进度条 */
+.progress-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-card h3 {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.radial-progress-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.radial-progress {
+  transform: rotate(-90deg);
+}
+
+.radial-progress circle {
+  fill: none;
+  stroke-width: 9px;
+}
+
+.radial-progress circle.bg {
+  stroke: rgba(255, 255, 255, 0.04);
+}
+
+.radial-progress circle.fg {
+  stroke: var(--neon-green);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-text span {
+  font-family: var(--font-family-title);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.progress-text small {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* 侧边栏统计指标 */
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-item {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 15px;
+}
+
+.stat-icon.streak { background: rgba(239, 68, 68, 0.12); color: var(--neon-rose); }
+.stat-icon.best-streak { background: rgba(245, 158, 11, 0.12); color: var(--color-work); }
+.stat-icon.total-checkins { background: rgba(16, 185, 129, 0.12); color: var(--neon-green); }
+
+.stat-data { display: flex; flex-direction: column; }
+.stat-data .value { font-family: var(--font-family-title); font-size: 16px; font-weight: 700; }
+.stat-data .label { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+/* 底部系统设置 */
+.sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-glass);
+  padding-top: 14px;
+}
+
+.sidebar-footer .btn {
+  width: 100%;
+}
+
+/* 5. 电脑端主面板 Main Content */
+.main-content {
+  flex: 1;
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* 允许右侧主面板整体垂直滚动，带来极致的网页仪表盘交互体验 */
+  gap: 20px;
+  height: 100vh;
+}
+
+/* 移动端顶栏 (在桌面端隐藏) */
+.mobile-header {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-brand i {
+  color: var(--neon-violet);
+  font-size: 18px;
+  text-shadow: var(--shadow-neon-violet);
+}
+
+.mobile-brand h1 {
+  font-family: var(--font-family-title);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.mobile-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 6. 置顶折线图卡片 (高度固定占比 35%左右) */
+.top-chart-section {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0; /* 禁止收缩 */
+}
+
+.chart-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-box h2 {
+  font-family: var(--font-family-title);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.welcome-box p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.date-navigator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.nav-arrow {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.nav-arrow:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+
+.current-date-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+.current-date-info span { font-size: 12px; font-weight: 600; }
+
+.badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-top: 1px;
+}
+.badge-today { background: rgba(6, 182, 212, 0.12); color: var(--neon-cyan); border: 1px solid rgba(6, 182, 212, 0.2); }
+.badge-past { background: rgba(138, 92, 246, 0.12); color: var(--neon-violet); border: 1px solid rgba(138, 92, 246, 0.2); }
+
+.sticky-chart-container {
+  width: 100%;
+  height: 180px; /* 固定高度 */
+  position: relative;
+}
+
+/* 7. 下方垂直滚动列表区 (取消限制，随主页整体滚动) */
+.bottom-checklist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.filter-tabs-row {
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+.tab-btn.active {
+  background: rgba(138, 92, 246, 0.12);
+  border-color: var(--border-glass-focus);
+  color: #c7d2fe;
+}
+
+/* 8. 极紧凑任务列表卡片 (跟随大框架排布，不设独立滚动) */
+.compact-habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* 间距紧凑 */
+}
+
+.habit-card {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.habit-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(6, 182, 212, 0.45); /* 悬浮时爆发出青蓝色荧光细边！非常炫酷科技感 */
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.15);
+  transform: translateY(-1px); /* 高级微幅向上悬浮，产生极其丝滑细腻的动态交互 */
+}
+
+.habit-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 自定义圆形打卡 Checkbox */
+.checkbox-container {
+  display: block;
+  position: relative;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+.checkbox-container input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-dim);
+  background: transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox-container:hover input ~ .checkmark { border-color: var(--neon-cyan); }
+
+.checkmark::after {
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 9px;
+  color: #fff;
+  display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background: linear-gradient(135deg, var(--neon-green), #10b981);
+  border-color: transparent;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+  animation: check-spring 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.4);
+}
+.checkbox-container input:checked ~ .checkmark::after { display: block; }
+
+.habit-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.habit-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.habit-title-text {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 确保超长文字平铺显示时不卡死变形 */
+  transition: all 0.25s ease;
+}
+
+/* 勾选删除划线淡出 */
+.checkbox-container input:checked ~ .habit-details .habit-title-text {
+  color: var(--text-dim);
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* 紧凑版 Meta Tags */
+.habit-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.cat-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 0 5px;
+  height: 16px;
+  line-height: 16px;
+  border-radius: 3px;
+}
+.cat-badge.health { color: var(--color-health); background: rgba(239, 68, 68, 0.06); }
+.cat-badge.learning { color: var(--color-learning); background: rgba(99, 102, 241, 0.06); }
+.cat-badge.work { color: var(--color-work); background: rgba(245, 158, 11, 0.06); }
+.cat-badge.mindset { color: var(--color-mindset); background: rgba(6, 182, 212, 0.06); }
+
+.reminder-badge {
+  font-size: 9px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* 右侧操作键 */
+.habit-card-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.habit-card:hover .habit-card-right {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 11px;
+}
+.action-btn:hover { background: rgba(255, 255, 255, 0.05); }
+.action-btn.edit:hover { color: var(--neon-cyan); }
+.action-btn.delete:hover { color: var(--neon-rose); }
+
+/* 9. 底部热力图区 (设为收折式辅助区) */
+.bottom-analytics-section {
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+.bottom-analytics-section .card-header {
+  padding: 4px 6px;
+  border-bottom: none;
+}
+.bottom-analytics-section h3 { font-size: 11px; color: var(--text-muted); }
+
+.heatmap-panel {
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr); /* 手机端排布两行 15 列，极为匀称 */
+  grid-template-rows: repeat(2, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.heatmap-cell.level-0 { background: #181f2f; }
+.heatmap-cell.level-1 { background: #064e3b; }
+.heatmap-cell.level-2 { background: #047857; }
+.heatmap-cell.level-3 { background: #10b981; }
+.heatmap-cell.level-4 { background: #34d399; }
+
+.heatmap-cell::after,
+.dotmatrix-cell::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 135%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.85);
+  background: rgba(10, 15, 30, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 8px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.heatmap-cell:hover::after,
+.dotmatrix-cell:hover::after { opacity: 1; transform: translateX(-50%) scale(1); }
+
+.heatmap-legend { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; color: var(--text-dim); }
+.heatmap-legend-colors { display: flex; gap: 2px; margin-top: 1px; }
+
+/* 9.1 双 Tab 分析切换栏 */
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.analytics-tabs {
+  display: flex;
+  gap: 8px;
+}
+.analytics-tab-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  font-family: var(--font-family-title);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.analytics-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.analytics-tab-btn.active {
+  color: var(--neon-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.25);
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+  box-shadow: inset 0 0 6px rgba(6, 182, 212, 0.08);
+}
+.analytics-action-hint {
+  font-size: 9px;
+  color: var(--text-dim);
+  font-family: var(--font-family-body);
+}
+
+/* 9.2 100天自律挑战点阵图 */
+.dotmatrix-panel {
+  padding: 10px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.dotmatrix-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* 10列 */
+  gap: 6px;
+  justify-items: center;
+  align-items: center;
+  width: 100%;
+}
+.dotmatrix-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 状态1：无任务 (Empty) - 半透明微茫圈 */
+.dotmatrix-cell.level-empty {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.dotmatrix-cell.level-empty:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+}
+
+/* 状态2：有任务未达标 (Missed) - 红色微茫虚线，带呼吸灯 */
+.dotmatrix-cell.level-missed {
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px dashed rgba(244, 63, 94, 0.45);
+  animation: missed-breath 3s infinite ease-in-out;
+}
+.dotmatrix-cell.level-missed:hover {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: var(--neon-rose);
+  box-shadow: 0 0 8px var(--neon-rose);
+}
+@keyframes missed-breath {
+  0%, 100% { border-color: rgba(244, 63, 94, 0.35); background: rgba(244, 63, 94, 0.04); }
+  50% { border-color: rgba(244, 63, 94, 0.7); background: rgba(244, 63, 94, 0.12); }
+}
+
+/* 状态3：达标 (Achieved) - 荧光绿呼吸灯星 */
+.dotmatrix-cell.level-achieved {
+  background: var(--neon-green);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
+}
+.dotmatrix-cell.level-achieved:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.85);
+}
+
+/* 状态4：完美完成 (Perfect) - 璀璨冰蓝超发光星 */
+.dotmatrix-cell.level-perfect {
+  background: #38bdf8;
+  box-shadow: 0 0 9px rgba(56, 189, 248, 0.65);
+  animation: perfect-glow 2.5s infinite ease-in-out;
+}
+.dotmatrix-cell.level-perfect:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.95);
+}
+@keyframes perfect-glow {
+  0%, 100% { box-shadow: 0 0 7px rgba(56, 189, 248, 0.5); }
+  50% { box-shadow: 0 0 13px rgba(56, 189, 248, 0.85); }
+}
+
+/* 9.3 图例与统计 */
+.dotmatrix-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: var(--text-dim);
+  padding: 0 4px;
+  width: 100%;
+}
+.legend-stars {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.legend-star-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.star-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.star-color.level-empty {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.star-color.level-missed {
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px dashed rgba(244, 63, 94, 0.5);
+}
+.star-color.level-achieved {
+  background: var(--neon-green);
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+}
+.star-color.level-perfect {
+  background: #38bdf8;
+  box-shadow: 0 0 7px rgba(56, 189, 248, 0.7);
+}
+.dotmatrix-streak-summary {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 10. 原生 Dialog 模态弹窗重置 */
+.modal {
+  border: none;
+  margin: auto;
+  max-width: 460px;
+  width: 92%;
+  color: var(--text-main);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal::backdrop {
+  background: rgba(3, 7, 18, 0.55); /* 稍微调亮透明度，不加高斯模糊，保持背景锐利可见 */
+}
+
+.modal-content { padding: 20px 24px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h3 { font-family: var(--font-family-title); font-size: 16px; font-weight: 700; }
+.close-btn { background: transparent; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-group label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.form-group .required { color: var(--neon-rose); }
+.form-group input[type="text"] {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+}
+.form-group input[type="text"]:focus { border-color: var(--neon-violet); }
+
+/* 设置面板特定元素 */
+.settings-section {
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+.settings-section h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.settings-section .section-desc { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
+
+.sync-status-card {
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.sync-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.sync-code-display { font-family: var(--font-family-title); font-weight: 800; font-size: 14px; color: var(--neon-cyan); letter-spacing: 0.5px; }
+
+.sync-actions-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+.input-action-group {
+  display: flex;
+  gap: 8px;
+}
+.input-action-group input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+}
+.input-action-group input:focus { border-color: var(--neon-cyan); }
+
+.sync-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 11px;
+}
+
+.bg-settings-actions {
+  display: flex;
+  gap: 10px;
+}
+.bg-settings-actions label, .bg-settings-actions button {
+  flex: 1;
+}
+
+/* 分类单选 */
+.category-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.category-radio { cursor: pointer; }
+.category-radio input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.radio-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255, 255, 255, 0.01); gap: 4px; }
+.radio-card i { font-size: 14px; }
+.radio-card small { font-size: 9px; font-weight: 600; }
+
+.category-radio.health input[type="radio"]:checked ~ .radio-card { background: rgba(239, 68, 68, 0.12); border-color: var(--color-health); color: var(--color-health); }
+.category-radio.learning input[type="radio"]:checked ~ .radio-card { background: rgba(99, 102, 241, 0.12); border-color: var(--color-learning); color: var(--color-learning); }
+.category-radio.work input[type="radio"]:checked ~ .radio-card { background: rgba(245, 158, 11, 0.12); border-color: var(--color-work); color: var(--color-work); }
+.category-radio.mindset input[type="radio"]:checked ~ .radio-card { background: rgba(6, 182, 212, 0.12); border-color: var(--color-mindset); color: var(--color-mindset); }
+
+/* Emoji 网格 */
+.emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 90px; overflow-y: auto; padding: 4px; border: 1px solid var(--border-glass); background: rgba(0, 0, 0, 0.12); border-radius: 8px; }
+.emoji-option { cursor: pointer; display: flex; justify-content: center; align-items: center; }
+.emoji-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.emoji-box { width: 32px; height: 32px; border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 16px; }
+.emoji-option input[type="radio"]:checked ~ .emoji-box { background: rgba(255, 255, 255, 0.06); border-color: var(--neon-cyan); border: 1.5px solid var(--neon-cyan); transform: scale(1.08); }
+
+/* 定时提醒组合 */
+.inline-group { flex-direction: row; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-glass); border-radius: 8px; padding: 10px 12px; }
+.checkbox-wrapper { display: flex; align-items: center; gap: 6px; }
+.checkbox-wrapper input[type="checkbox"] { accent-color: var(--neon-violet); width: 14px; height: 14px; cursor: pointer; }
+.checkbox-label { font-size: 12px !important; color: var(--text-main) !important; cursor: pointer; }
+.time-input-wrapper { display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.15); border: 1px solid var(--border-glass); padding: 4px 8px; border-radius: 6px; }
+.time-input-wrapper.disabled { opacity: 0.25; pointer-events: none; }
+.time-input-wrapper i { font-size: 12px; color: var(--text-muted); }
+.time-input-wrapper input[type="time"] { background: transparent; border: none; color: #fff; font-size: 12px; outline: none; }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.form-actions .btn { padding: 8px 14px; font-size: 12px; }
+
+/* 按钮微型尺寸与基本样式 */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; font-family: var(--font-family-body); font-weight: 600; font-size: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.btn-sm { padding: 6px 10px; font-size: 10px; border-radius: 6px; }
+.btn-primary { background: linear-gradient(135deg, var(--neon-violet), hsl(250, 85%, 52%)); color: #fff; box-shadow: var(--shadow-neon-violet); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 18px rgba(138, 92, 246, 0.5); }
+.btn-secondary { background: var(--bg-glass); border: 1px solid var(--border-glass); color: var(--text-main); }
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: #fff; }
+
+.margin-top-sm { margin-top: 8px; }
+
+/* ==========================================================================
+   11. 双端自适应媒体查询 (Universal Media Queries)
+   ========================================================================== */
+
+/* 电脑/大屏端 (屏幕宽度 > 768px) */
+@media (min-width: 769px) {
+  .mobile-header {
+    display: none !important;
+  }
+}
+
+/* 手机/窄屏端 (屏幕宽度 <= 768px) */
+@media (max-width: 768px) {
+  #sidebar-panel {
+    display: none !important; /* 隐藏电脑侧边栏 */
+  }
+
+  .mobile-header {
+    display: flex !important; /* 显示手机页眉 */
+    padding: 0 4px;
+    background: transparent;
+  }
+
+  .app-container {
+    flex-direction: column; /* 改为纵向单列排布 */
+  }
+
+  .main-content {
+    padding: 12px 14px; /* 极小手机边距 */
+    height: 100vh;
+    gap: 12px;
+    overflow-y: auto; /* 仅主框架整体支持滚动，但图表和列表都有自己合理的排布 */
+  }
+
+  /* 手机顶部折线图固定 */
+  .top-chart-section {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .welcome-box h2 {
+    font-size: 16px;
+  }
+
+  .welcome-box p {
+    font-size: 9px;
+  }
+
+  .date-navigator {
+    padding: 2px 6px;
+  }
+
+  .nav-arrow {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+
+  .current-date-info {
+    min-width: 80px;
+  }
+
+  .current-date-info span {
+    font-size: 11px;
+  }
+
+  .sticky-chart-container {
+    height: 140px; /* 手机端稍微缩减高度 */
+  }
+
+  /* 手机列表卡片 hover 时展示操作按钮（改由触控支持或轻微露出） */
+  .habit-card-right {
+    opacity: 1; /* 手机端始终显示编辑、删除 */
+    transform: translateX(0);
+  }
+
+  .habit-card {
+    height: 44px; /* 手机端核心紧凑高度保持 44px */
+    padding: 0 12px;
+  }
+
+  .habit-title-text {
+    font-size: 13px;
+  }
+
+  .cat-badge {
+    font-size: 8px;
+    padding: 0 4px;
+    height: 14px;
+    line-height: 14px;
+  }
+
+  .reminder-badge {
+    font-size: 8px;
+  }
+
+  /* 热力图手机端微调 */
+  .heatmap-grid {
+    grid-template-columns: repeat(15, 1fr); /* 2 行 15 列适应手机屏幕 */
+  }
+
+  .heatmap-cell {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* 点阵图手机端微调 */
+  .dotmatrix-grid {
+    gap: 4px;
+  }
+  .dotmatrix-cell {
+    width: 9px;
+    height: 9px;
+  }
+  .dotmatrix-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .legend-stars {
+    gap: 6px;
+  }
+
+  /* 备份物理模块在手机端隐藏 */
+  .desktop-only-section {
+    display: none !important;
+  }
+}
+
+/* 12. 动画效果 */
+@keyframes check-spring {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.neon-glow {
+  text-shadow: var(--shadow-neon-violet);
+}
+
+/* ==========================================================================
+   13. [NEW] 游戏化补卡券与复活条美化样式
+   ========================================================================== */
+
+.neon-glow-gold {
+  color: hsl(38, 95%, 60%) !important;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.stat-icon.ticket {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: hsl(38, 95%, 60%) !important;
+}
+
+/* 一键复活提示条 */
+.resurrect-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.35); /* 黄金边框 */
+  background: rgba(245, 158, 11, 0.05); /* 黄金微渲染，极高通透水晶质感 */
+  margin-bottom: 12px;
+  animation: banner-glow-amber 3s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes banner-glow-amber {
+  0%, 100% { border-color: rgba(245, 158, 11, 0.25); box-shadow: 0 0 6px rgba(245, 158, 11, 0.05); }
+  50% { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 16px rgba(245, 158, 11, 0.18); }
+}
+
+.resurrect-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: hsl(38, 95%, 85%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.resurrect-banner-left i {
+  color: hsl(38, 95%, 55%);
+  font-size: 14px;
+}
+
+.btn-resurrect {
+  background: linear-gradient(135deg, hsl(38, 95%, 55%), hsl(25, 95%, 50%)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  padding: 0 12px !important;
+  font-size: 11px !important;
+  height: 28px;
+  border-radius: 6px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-resurrect:hover {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.75);
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.btn-resurrect:active {
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   自律时光成就报告 (A) 与常驻复盘面板 (B) 殿堂级发光样式
+   ========================================================================== */
+
+/* 13.1 黄金成就勋章按钮与发光 */
+.neon-glow-gold {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.4);
+  animation: gold-glow-pulse 2.5s infinite ease-in-out;
+}
+@keyframes gold-glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.4)); }
+  50% { filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.85)); }
+}
+
+/* 13.2 首页常驻复盘面板 (Option B) */
+.review-panel-section {
+  padding: 10px 14px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap; /* 自适应手机折行 */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.review-panel-section:hover {
+  border-color: rgba(251, 191, 36, 0.2);
+  box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.03), var(--shadow-card);
+}
+.review-stars-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.review-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.review-stars {
+  display: flex;
+  gap: 3px;
+}
+.review-stars i {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+}
+.review-stars i.star-active {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.9);
+}
+.review-badge-container {
+  flex-shrink: 0;
+}
+.review-badge {
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  color: var(--neon-cyan);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(6, 182, 212, 0.4);
+}
+.review-coach-advice {
+  flex: 1;
+  min-width: 200px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+  text-align: right;
+}
+
+/* 13.3 成就总结报告全屏弹窗 (Option A) */
+.report-modal {
+  max-width: 500px !important;
+  width: 95% !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8), 0 0 30px rgba(251, 191, 36, 0.1) !important;
+  border: 1px solid rgba(251, 191, 36, 0.2) !important;
+}
+.report-card {
+  padding: 16px 20px !important;
+}
+.report-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.report-badge-medal {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+  margin-bottom: 8px;
+  animation: medal-shake 4s infinite ease-in-out;
+}
+@keyframes medal-shake {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-4px) rotate(5deg); }
+}
+.report-badge-medal i {
+  color: #fff;
+  font-size: 26px;
+}
+.report-header h3 {
+  font-family: var(--font-family-title);
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.report-subtitle {
+  font-family: var(--font-family-title);
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.report-header .close-btn {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  font-size: 22px;
+}
+
+.report-body {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 核心段位称号 */
+.report-rank-section {
+  text-align: center;
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.06) 0%, rgba(0,0,0,0) 100%);
+  border: 1px dashed rgba(251, 191, 36, 0.25);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.03);
+}
+.report-rank-section small {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.report-rank-section h2 {
+  font-family: var(--font-family-title);
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 20%, #fbbf24 80%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.35);
+  margin-top: 4px;
+}
+
+/* 统计卡片网格 */
+.report-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.report-stat-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 10px 4px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.report-stat-box:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.report-stat-box .value {
+  font-family: var(--font-family-title);
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+.report-stat-box .label {
+  font-size: 8px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* 偏爱卡片 */
+.report-preference-card {
+  background: rgba(6, 182, 212, 0.03);
+  border: 1px solid rgba(6, 182, 212, 0.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.report-preference-card .pref-icon {
+  width: 38px;
+  height: 38px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neon-cyan);
+  font-size: 18px;
+  text-shadow: 0 0 5px rgba(6, 182, 212, 0.6);
+  flex-shrink: 0;
+}
+.report-preference-card .pref-info {
+  display: flex;
+  flex-direction: column;
+}
+.report-preference-card .label {
+  font-size: 8px;
+  color: var(--text-dim);
+}
+.report-preference-card h4 {
+  font-family: var(--font-family-title);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  margin: 1px 0;
+}
+.report-preference-card p {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* AI教练评语纸 */
+.report-coach-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.report-coach-section h4 {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.report-coach-paper {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.02);
+}
+.report-coach-paper p {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: justify;
+  font-style: italic;
+}
+
+/* 按钮操作 */
+.report-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.report-actions button {
+  flex: 1;
+}
+
+/* 适配手机端 */
+@media (max-width: 768px) {
+  .review-panel-section {
+    padding: 10px 8px;
+    gap: 8px;
+  }
+  .review-coach-advice {
+    text-align: left;
+    min-width: 100%;
+    margin-top: 4px;
+    border-top: 1px dashed rgba(255,255,255,0.05);
+    padding-top: 4px;
+  }
+  
+  .report-modal {
+    width: 94% !important;
+  }
+  .report-card {
+    padding: 12px 14px !important;
+  }
+  .report-badge-medal {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 4px;
+  }
+  .report-badge-medal i {
+    font-size: 22px;
+  }
+  .report-header h3 {
+    font-size: 16px;
+  }
+  .report-rank-section h2 {
+    font-size: 20px;
+  }
+  .report-stat-box .value {
+    font-size: 14px;
+  }
+  .report-preference-card {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+  .report-preference-card .pref-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+}
+
+
+/* ===================================================
+   侧边栏导航 Sidebar Nav
+   =================================================== */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-family: var(--font-family-body);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.nav-btn i {
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.nav-btn:hover {
+  background: rgba(138, 92, 246, 0.12);
+  color: var(--text-main);
+  border-color: rgba(138, 92, 246, 0.2);
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(138,92,246,0.2), rgba(6,182,212,0.12));
+  border-color: rgba(138, 92, 246, 0.35);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(138, 92, 246, 0.18);
+}
+
+.nav-btn.active i {
+  color: var(--neon-violet);
+  text-shadow: 0 0 8px rgba(138,92,246,0.6);
+}
+
+/* ===================================================
+   日记页面 Diary Page
+   =================================================== */
+.diary-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInUp 0.35s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 日记页头部 */
+.diary-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.diary-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.diary-page-icon {
+  font-size: 28px;
+  background: linear-gradient(135deg, #a78bfa, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(138,92,246,0.5));
+}
+
+.diary-page-title {
+  font-family: var(--font-family-title);
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(to right, #fff, #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.diary-page-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.diary-new-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(138,92,246,0.85), rgba(6,182,212,0.7));
+  border: 1px solid rgba(138,92,246,0.4);
+  box-shadow: 0 4px 16px rgba(138,92,246,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.diary-new-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(138,92,246,0.45);
+}
+
+/* 情绪统计条 */
+.diary-mood-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  flex-wrap: wrap;
+}
+
+.diary-mood-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 52px;
+}
+
+.diary-mood-count {
+  font-family: var(--font-family-title);
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a78bfa, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.diary-mood-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.diary-mood-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-glass);
+  flex-shrink: 0;
+}
+
+.diary-mood-emojis {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.diary-mood-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: background 0.2s;
+}
+
+.diary-mood-chip:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.diary-streak-info {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 日记列表 */
+.diary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 24px;
+}
+
+.diary-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 24px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.diary-empty-state .empty-icon {
+  font-size: 48px;
+  opacity: 0.35;
+}
+
+.diary-empty-state p {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.diary-empty-state small {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* 日记卡片 */
+.diary-card {
+  background: var(--card-bg, rgba(11,15,26,0.42));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.diary-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(to bottom, var(--neon-violet), var(--neon-cyan));
+  opacity: 0.7;
+}
+
+.diary-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(138,92,246,0.3);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.4), 0 0 0 1px rgba(138,92,246,0.15);
+}
+
+.diary-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.diary-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-card-mood {
+  font-size: 22px;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
+}
+
+.diary-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.diary-card-date {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.diary-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diary-card-title.no-title {
+  color: var(--text-dim);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.diary-card-preview {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+}
+
+.diary-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.diary-card-words {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.diary-card-edit-hint {
+  font-size: 11px;
+  color: var(--neon-violet);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.diary-card:hover .diary-card-edit-hint {
+  opacity: 1;
+}
+
+/* ===================================================
+   日记编写弹窗 Diary Modal
+   =================================================== */
+.diary-modal {
+  max-width: 640px;
+  width: 94vw;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* 纸张信笺主体 */
+.diary-paper-sheet {
+  background-color: #fdfaf2 !important; /* 温馨可爱的奶油暖白 */
+  background-image: radial-gradient(#eedcc5 1.5px, transparent 1.5px) !important; /* 活页本精致点阵 */
+  background-size: 18px 18px !important;
+  border: 2px solid #dfc7b1 !important;
+  border-radius: 16px !important;
+  padding: 30px 24px 24px !important;
+  position: relative !important;
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.25),
+    0 2px 5px rgba(0, 0, 0, 0.08) !important;
+  color: #4e3621 !important; /* 温暖手写深褐字 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+}
+
+/* 缝线效果 */
+.diary-paper-sheet::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 1.5px dashed #ebd5c0;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 活页本顶部线圈 */
+.notebook-spiral-header {
+  position: absolute;
+  top: -16px;
+  left: 8%;
+  right: 8%;
+  display: flex;
+  justify-content: space-between;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.notebook-spiral-ring {
+  width: 14px;
+  height: 32px;
+  background: linear-gradient(to right, #f1f5f9, #cbd5e1, #94a3b8, #cbd5e1);
+  border: 1.2px solid #8595a8;
+  border-radius: 7px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.notebook-spiral-ring::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 3px;
+  width: 3px; height: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+}
+
+/* 纸质装饰胶带 */
+.washi-tape {
+  position: absolute;
+  top: -12px;
+  width: 76px;
+  height: 24px;
+  z-index: 15;
+  opacity: 0.85;
+  backdrop-filter: blur(0.5px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.washi-tape:hover {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+}
+
+.left-tape {
+  left: 24px;
+  transform: rotate(-6deg);
+  background: repeating-linear-gradient(45deg, #fecaca, #fecaca 10px, #fca5a5 10px, #fca5a5 20px); /* 粉红条纹 */
+  clip-path: polygon(3% 10%, 98% 2%, 95% 88%, 0% 95%);
+}
+
+.right-tape {
+  right: 24px;
+  transform: rotate(5deg);
+  background: repeating-linear-gradient(-45deg, #fed7aa, #fed7aa 8px, #ffedd5 8px, #ffedd5 16px); /* 奶油橘条纹 */
+  clip-path: polygon(0% 2%, 97% 8%, 100% 92%, 4% 90%);
+}
+
+/* 可爱小牛贴纸 */
+.diary-paper-sticker {
+  position: absolute;
+  bottom: 74px;
+  right: 24px;
+  width: 68px;
+  height: auto;
+  z-index: 11;
+  border: 4px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  transform: rotate(-6deg);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.diary-paper-sticker:hover {
+  transform: scale(1.2) rotate(6deg) translateY(-8px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.18);
+}
+
+/* 装饰性手绘涂鸦 */
+.diary-doodle {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  font-size: 20px;
+  z-index: 10;
+}
+
+.sprout-doodle {
+  bottom: 72px;
+  left: 28px;
+  animation: sprout-grow 4s ease-in-out infinite alternate;
+}
+
+.star-doodle {
+  top: 24px;
+  right: 76px;
+  font-size: 16px;
+  animation: star-float 3s ease-in-out infinite;
+}
+
+@keyframes sprout-grow {
+  0% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+@keyframes star-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+  50% { transform: translateY(-6px) rotate(15deg); opacity: 1; }
+}
+
+.diary-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+}
+
+.diary-quill-icon {
+  font-size: 18px;
+  color: #b45309; /* 暖木褐色羽毛笔 */
+}
+
+/* 日记日期与心情行 */
+.diary-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fffcf7 !important; /* 像贴在一旁的小便签纸 */
+  border-radius: 12px;
+  border-left: 4px solid #fca5a5; /* 粉色小便签条 */
+  border-top: 1px solid #eedecf;
+  border-right: 1px solid #eedecf;
+  border-bottom: 2px solid #eedecf;
+  z-index: 2;
+}
+
+.diary-date-display {
+  font-size: 13px;
+  color: #785a43;
+  font-weight: 600;
+}
+
+.diary-mood-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.diary-mood-label-small {
+  font-size: 12px;
+  color: #8c6e54;
+  white-space: nowrap;
+}
+
+.diary-mood-options {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.mood-opt {
+  position: relative;
+  cursor: pointer;
+}
+
+.mood-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+}
+
+.mood-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  border: 1.5px solid #ebdcc5;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.mood-opt input[type="radio"]:checked + .mood-emoji {
+  border-color: #f59e0b;
+  background: #fef3c7; /* 温暖蜡笔黄戳印 */
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+  transform: scale(1.18) rotate(4deg);
+}
+
+.mood-emoji:hover {
+  background: #fdfaf2;
+  transform: scale(1.1) rotate(-4deg);
+}
+
+/* 日记标题输入 */
+.diary-title-input {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px dashed #dfc7b1 !important; /* 手绘虚线输入框 */
+  border-radius: 0px !important;
+  padding: 8px 4px !important;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4e3621 !important;
+  font-family: var(--font-family-body);
+  outline: none;
+  transition: border-bottom-color 0.2s;
+  z-index: 2;
+}
+
+.diary-title-input:focus {
+  border-bottom-color: #b45309 !important;
+}
+
+.diary-title-input::placeholder {
+  color: #c4ab94;
+  font-weight: 500;
+}
+
+/* 日记正文编辑区（横线本效果） */
+.diary-editor-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.diary-content-textarea {
+  width: 100%;
+  min-height: 220px;
+  max-height: 320px;
+  background: transparent !important;
+  /* 精致横线纸效果，文字完美落在横线上 */
+  background-image: linear-gradient(transparent, transparent 31px, rgba(223, 199, 177, 0.35) 31px) !important;
+  background-size: 100% 32px !important;
+  line-height: 32px !important;
+  font-size: 14.5px !important;
+  padding: 6px 8px 36px !important; /* 底部padding留空给计数器和贴纸 */
+  color: #4e3621 !important;
+  font-family: var(--font-family-body);
+  outline: none;
+  border: none !important;
+  resize: none !important;
+  transition: none;
+}
+
+.diary-content-textarea::placeholder {
+  color: #bfa58d;
+  line-height: 32px;
+}
+
+.diary-char-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  font-size: 11px;
+  color: #a38c76;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* 日记操作按钮行 */
+.diary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #f87171;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-family-body);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-danger-outline:hover {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.6);
+}
+
+/* ===================================================
+   响应式适配
+   =================================================== */
+@media (max-width: 768px) {
+  .diary-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .diary-new-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .diary-mood-bar {
+    gap: 12px;
+  }
+  .diary-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .diary-card-header {
+    flex-wrap: wrap;
+  }
+}
+
+/* ===================================================
+   主题切换器 UI  Theme Switcher
+   =================================================== */
+.theme-switcher-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.theme-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-preview {
+  width: 100px;
+  height: 68px;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.theme-option input[type="radio"]:checked + .theme-preview {
+  border-color: var(--neon-violet);
+  box-shadow: 0 0 14px rgba(138, 92, 246, 0.45);
+  transform: scale(1.05);
+}
+
+.theme-preview:hover {
+  transform: scale(1.03);
+}
+
+.theme-preview-bar {
+  height: 8px;
+  border-radius: 4px;
+  width: 60%;
+}
+
+.theme-preview-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.theme-preview-dots span {
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* 默认主题预览 */
+.theme-preview-default {
+  background: hsl(222, 25%, 10%);
+  border-color: rgba(138, 92, 246, 0.2);
+}
+.theme-preview-default .theme-preview-bar {
+  background: linear-gradient(90deg, hsl(260, 85%, 65%), hsl(180, 85%, 48%));
+}
+.theme-preview-default .theme-preview-dots span:nth-child(1) { background: hsl(345, 85%, 60%); }
+.theme-preview-default .theme-preview-dots span:nth-child(2) { background: hsl(243, 75%, 65%); }
+.theme-preview-default .theme-preview-dots span:nth-child(3) { background: hsl(180, 85%, 48%); }
+
+/* 星露谷主题预览 */
+.theme-preview-stardew {
+  background: hsl(33, 35%, 22%);
+  border-color: rgba(160, 120, 60, 0.3);
+}
+.theme-preview-stardew .theme-preview-bar {
+  background: linear-gradient(90deg, hsl(43, 72%, 55%), hsl(120, 40%, 45%));
+}
+.theme-preview-stardew .theme-preview-dots span:nth-child(1) { background: hsl(15, 65%, 55%); }
+.theme-preview-stardew .theme-preview-dots span:nth-child(2) { background: hsl(120, 40%, 45%); }
+.theme-preview-stardew .theme-preview-dots span:nth-child(3) { background: hsl(43, 72%, 55%); }
+
+/* 海绵宝宝主题预览 */
+.theme-preview-spongebob {
+  background: #bce8e3;
+  border-color: #ff9ebb;
+}
+.theme-preview-spongebob .theme-preview-bar {
+  background: linear-gradient(90deg, #ffc93c, #ff9ebb);
+}
+.theme-preview-spongebob .theme-preview-dots span:nth-child(1) { background: #ff6b8b; }
+.theme-preview-spongebob .theme-preview-dots span:nth-child(2) { background: #ffeb99; }
+.theme-preview-spongebob .theme-preview-dots span:nth-child(3) { background: #0077b6; }
+
+.theme-name {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.theme-option input[type="radio"]:checked ~ .theme-name {
+  color: #fff;
+}
+
+/* ===================================================
+   🌾 星露谷物语主题 Stardew Valley Theme
+   ===================================================
+   用 body.theme-stardew 作为作用域选择器
+   完全覆盖默认霓虹科技配色
+   =================================================== */
+
+body.theme-stardew {
+  --bg-app: #241107;
+  --bg-sidebar: #a26938;
+  --bg-glass: #f7e1b5;
+  --bg-glass-hover: #ffeed0;
+  --border-glass: #3c1f0f;
+  --border-glass-focus: #b57a3d;
+
+  --neon-violet: #d49c5e;     /* 原木金 */
+  --neon-cyan: #6a9f38;       /* 农作物绿 */
+  --neon-rose: #b82d2d;       /* 能量红 */
+  --neon-green: #3d7f1c;      /* 茂盛绿 */
+
+  --color-health: #e32929;     /* 能量红心 */
+  --color-learning: #4282c9;   /* 水源蓝 */
+  --color-work: #ffd83b;      /* 金币黄 */
+  --color-mindset: #9e55d4;   /* 薰衣草紫 */
+
+  --text-main: #4a2107;       /* 刻木暗褐 */
+  --text-muted: #733e14;      /* 木纹中褐 */
+  --text-dim: #945f34;        /* 砂质浅褐 */
+
+  --shadow-neon-violet: 0 4px 0 #1b1008;
+  --shadow-card: 0 6px 0 rgba(0, 0, 0, 0.35);
+
+  --card-bg: #fbeecd;
+
+  --font-family-title: 'Press Start 2P', 'Courier New', monospace;
+  --font-family-body: 'Outfit', 'Inter', system-ui, sans-serif;
+
+  background-color: var(--bg-app);
+}
+
+/* 1. 全局自定义像素指针与背景 */
+body.theme-stardew {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M2,2 L14,8 L10,9 L16,17 L13,19 L7,11 L4,13 Z' fill='%23ffd166' stroke='%233c1f0f' stroke-width='2'/%3E%3C/svg%3E"), auto !important;
+}
+
+body.theme-stardew button,
+body.theme-stardew a,
+body.theme-stardew .nav-btn,
+body.theme-stardew .habit-card,
+body.theme-stardew .checkmark,
+body.theme-stardew .checkbox-container {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M2,2 L14,8 L10,9 L16,17 L13,19 L7,11 L4,13 Z' fill='%23ffd166' stroke='%233c1f0f' stroke-width='2'/%3E%3C/svg%3E"), pointer !important;
+}
+
+/* 全局背景 —— 像素风深色实木格栅地板 */
+body.theme-stardew .global-background-container {
+  background-color: #241107 !important;
+  background-image: 
+    repeating-linear-gradient(0deg, #1b0c05 0px, #1b0c05 2px, transparent 2px, transparent 40px),
+    repeating-linear-gradient(90deg, #1b0c05 0px, #1b0c05 2px, transparent 2px, transparent 40px),
+    radial-gradient(circle at center, #3c1f0f 20%, #1b0c05 100%) !important;
+  background-size: 32px 32px, 32px 32px, 100% 100% !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+body.theme-stardew .global-background-overlay {
+  background: rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: none !important;
+}
+
+/* 2. 标志性的羊皮纸与双层原木边框 */
+body.theme-stardew .glass,
+body.theme-stardew .modal-content {
+  background-color: #f7e1b5 !important;
+  background-image: radial-gradient(circle at center, #fbeecd 0%, #f7e1b5 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 8px 12px rgba(0, 0, 0, 0.45) !important;
+  color: #4a2107 !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body.theme-stardew .glass-hover:hover {
+  background-color: #fbeecd !important;
+  box-shadow: 
+    0 0 0 4px #c68a4c, 
+    0 0 0 7px #1a0f07, 
+    0 10px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3. 实木侧边栏 */
+body.theme-stardew .sidebar {
+  background-color: #a26938 !important;
+  border-right: 5px solid #3c1f0f !important;
+  box-shadow: 
+    inset -4px 0 0 rgba(0, 0, 0, 0.2),
+    inset 4px 4px 0 rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .brand {
+  border-bottom: 3px dashed #3c1f0f !important;
+  padding-bottom: 16px !important;
+}
+
+body.theme-stardew .brand-icon {
+  background: #fcd386 !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  border-radius: 0px !important;
+}
+body.theme-stardew .brand-icon i {
+  color: #e32929 !important; /* 红心王冠 */
+  text-shadow: none !important;
+}
+
+body.theme-stardew .brand-info h2 {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #ffd83b !important;
+  text-shadow: 2px 2px 0 #3c1f0f !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 11px !important;
+}
+body.theme-stardew .brand-info span {
+  color: #ffe6c4 !important;
+  font-weight: bold !important;
+  font-size: 9px !important;
+}
+
+/* 4. 木牌导航按钮 */
+body.theme-stardew .nav-btn {
+  background-color: #c9884c !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1b1008,
+    inset 0 2px 0 rgba(255, 255, 255, 0.15) !important;
+  border-radius: 0px !important;
+  color: #ffebd3 !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 10px !important;
+  text-shadow: 1px 1px 0 #1a0f07 !important;
+  margin-bottom: 10px !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+body.theme-stardew .nav-btn i {
+  color: #ffebd3 !important;
+  text-shadow: 1px 1px 0 #1a0f07 !important;
+}
+body.theme-stardew .nav-btn:hover {
+  background-color: #d8995a !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 6px 0 #1b1008,
+    inset 0 2px 0 rgba(255, 255, 255, 0.15) !important;
+}
+body.theme-stardew .nav-btn.active {
+  background-color: #ffd83b !important; /* 橙金色高亮木牌 */
+  border-color: #3c1f0f !important;
+  color: #4a2107 !important;
+  box-shadow: 
+    0 2px 0 #1b1008,
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15) !important;
+  text-shadow: none !important;
+  transform: translateY(2px) !important;
+}
+body.theme-stardew .nav-btn.active i {
+  color: #b85c1c !important;
+  text-shadow: none !important;
+}
+
+/* 5. 经典厚原木动作按钮 */
+body.theme-stardew .btn {
+  border-radius: 0px !important;
+  text-shadow: 1px 1px 0 #1a0f07 !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 9px !important;
+  padding: 8px 12px !important;
+  letter-spacing: 0.5px;
+  font-weight: normal !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+
+body.theme-stardew .btn-primary,
+body.theme-stardew .add-habit-trigger {
+  background: linear-gradient(180deg, #ffd83b 0%, #df9b42 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1b1008,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+}
+body.theme-stardew .btn-primary:hover,
+body.theme-stardew .add-habit-trigger:hover {
+  background: linear-gradient(180deg, #ffe066 0%, #eaab56 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 5px 0 #1b1008,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+}
+body.theme-stardew .btn-primary:active,
+body.theme-stardew .add-habit-trigger:active {
+  transform: translateY(3px) !important;
+  box-shadow: 
+    0 1px 0 #1b1008,
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+body.theme-stardew .btn-secondary {
+  background: linear-gradient(180deg, #d69f68 0%, #a86c34 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1b1008,
+    inset 0 2px 0 rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+body.theme-stardew .btn-secondary:hover {
+  background: linear-gradient(180deg, #e5b07a 0%, #b87c42 100%) !important;
+}
+body.theme-stardew .btn-secondary:active {
+  transform: translateY(3px) !important;
+  box-shadow: 0 1px 0 #1b1008 !important;
+}
+
+/* 6. 日历打卡卡片 —— 砂纸写字板风格 */
+body.theme-stardew .habit-card {
+  background-color: #fbeecd !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 4px 0 rgba(0, 0, 0, 0.3) !important;
+  color: #4a2107 !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+  height: 48px !important;
+}
+body.theme-stardew .habit-card:hover {
+  background-color: #fff4d9 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 0 0 3px #c68a4c,
+    0 6px 0 rgba(0, 0, 0, 0.35) !important;
+}
+body.theme-stardew .habit-title-text {
+  color: #4a2107 !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+}
+
+/* 自定义圆形打卡 Checkbox → 拟物化实木插孔 */
+body.theme-stardew .checkmark {
+  border-radius: 0px !important;
+  border: 2px solid #3c1f0f !important;
+  background: #ebd2ad !important;
+  box-shadow: inset 2px 2px 2px rgba(0, 0, 0, 0.15) !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+body.theme-stardew .checkbox-container:hover input ~ .checkmark {
+  border-color: #b57a3d !important;
+  background: #ffd83b !important;
+}
+/* 勾选之后激活 → 升华为代表卓越的金色质量五角星！ */
+body.theme-stardew .checkbox-container input:checked ~ .checkmark {
+  background: #e8ab56 !important;
+  border-color: #3c1f0f !important;
+  box-shadow: none !important;
+  animation: check-spring 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.4);
+}
+body.theme-stardew .checkbox-container input:checked ~ .checkmark::after {
+  content: "\f005" !important; /* FontAwesome Star 金色星星 */
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  color: #ffd83b !important;
+  text-shadow: 1px 1px 0 #3c1f0f !important;
+  font-size: 11px !important;
+}
+/* 打卡完成的卡片样式变暗褐，带星露谷式的收割划线 */
+body.theme-stardew .habit-card.checked {
+  background-color: #ecd9b8 !important;
+  box-shadow: 
+    0 0 0 3px #945f34,
+    0 2px 0 rgba(0, 0, 0, 0.25) !important;
+}
+body.theme-stardew .checkbox-container input:checked ~ .habit-details .habit-title-text {
+  color: #885c3c !important;
+  text-decoration: line-through !important;
+  opacity: 0.7 !important;
+}
+
+/* 7. 卡片分类徽章 & 连续天数红心 */
+body.theme-stardew .cat-badge {
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  font-weight: bold !important;
+  text-shadow: none !important;
+}
+body.theme-stardew .cat-badge.health { background: #ffd1d1 !important; color: #a61c1c !important; }
+body.theme-stardew .cat-badge.learning { background: #d1e4ff !important; color: #1c5ba6 !important; }
+body.theme-stardew .cat-badge.work { background: #ffe9d1 !important; color: #a65b1c !important; }
+body.theme-stardew .cat-badge.mindset { background: #eed1ff !important; color: #6a1ca6 !important; }
+
+/* 将连续天数的火苗图标覆盖为代表生命的红心 (Energy/Health Heart) */
+body.theme-stardew .stat-icon.streak i::before {
+  content: "\f004" !important; /* fa-heart 红心 */
+  color: #e32929 !important;
+}
+body.theme-stardew .stat-icon.streak {
+  background: linear-gradient(135deg, #e32929 0%, #b81d1d 100%) !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+}
+
+/* 将其它资产图表覆盖为星露谷拟物图标 */
+body.theme-stardew .stat-icon.best-streak {
+  background: linear-gradient(135deg, #ffd83b 0%, #df9b42 100%) !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+}
+body.theme-stardew .stat-icon.total-checkins {
+  background: linear-gradient(135deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+}
+body.theme-stardew .stat-icon.ticket {
+  background: linear-gradient(135deg, #ffd83b 0%, #c58a4a 100%) !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+}
+body.theme-stardew .stat-icon.ticket i::before {
+  content: "\f51e" !important; /* fa-coins 金币替代补卡券 */
+  color: #ffd83b !important;
+}
+
+/* 8. 标志性的置顶Pierre木栏公告板 */
+body.theme-stardew .top-chart-section {
+  background-color: #f7e1b5 !important;
+  border: 4px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 5px #b57a3d, 
+    0 0 0 8px #1a0f07, 
+    0 8px 16px rgba(0,0,0,0.45) !important;
+  border-radius: 0px !important;
+}
+body.theme-stardew .welcome-box h2 {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 11px !important;
+  color: #4a2107 !important;
+  text-shadow: none !important;
+}
+body.theme-stardew .welcome-box p {
+  color: #733e14 !important;
+  font-weight: 600 !important;
+}
+
+/* 日期切换木牌 */
+body.theme-stardew .nav-arrow {
+  background: #c9884c !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #ffebd3 !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+body.theme-stardew .nav-arrow:hover {
+  background: #e5b072 !important;
+}
+body.theme-stardew .nav-arrow:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #1a0f07 !important;
+}
+body.theme-stardew .current-date-info {
+  background: #fbeecd !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 9px !important;
+  color: #4a2107 !important;
+  padding: 4px 12px !important;
+}
+/* 今日标签 → 经典的红色惊叹号风格 */
+body.theme-stardew .badge-today {
+  background: #e32929 !important;
+  border: 1.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #fff !important;
+  font-family: var(--font-family-body) !important;
+  font-size: 9px !important;
+  text-shadow: none !important;
+}
+
+/* 9. 耕地与金星农作物热力图 (Level-0为空地，Level-4为金星作物!) */
+body.theme-stardew .heatmap-cell.level-0 { background: #d3b185 !important; border: 1.5px solid #3c1f0f !important; border-radius: 0px !important; }
+body.theme-stardew .heatmap-cell.level-1 { background: #99b755 !important; border: 1.5px solid #3c1f0f !important; border-radius: 0px !important; }
+body.theme-stardew .heatmap-cell.level-2 { background: #6a9f38 !important; border: 1.5px solid #3c1f0f !important; border-radius: 0px !important; }
+body.theme-stardew .heatmap-cell.level-3 { background: #3d7f1c !important; border: 1.5px solid #3c1f0f !important; border-radius: 0px !important; }
+body.theme-stardew .heatmap-cell.level-4 { 
+  background: #ffd83b !important; 
+  border: 1.5px solid #3c1f0f !important; 
+  border-radius: 0px !important;
+  box-shadow: 0 0 6px rgba(253, 216, 59, 0.75) !important;
+}
+
+/* 10. 标志性的挂角红色像素关闭按钮 */
+body.theme-stardew .close-btn {
+  background: #b82d2d !important;
+  color: #ffffff !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1a0f07,
+    inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  font-family: 'Press Start 2P', sans-serif !important;
+  position: absolute !important;
+  top: -12px !important;
+  right: -12px !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+body.theme-stardew .close-btn:hover {
+  background: #d84545 !important;
+  transform: scale(1.05) !important;
+}
+body.theme-stardew .close-btn:active {
+  transform: translateY(3px) !important;
+  box-shadow: 0 1px 0 #1a0f07 !important;
+}
+
+/* 11. 实木下拉/输入区域 */
+body.theme-stardew input[type="text"],
+body.theme-stardew input[type="time"],
+body.theme-stardew textarea,
+body.theme-stardew select,
+body.theme-stardew .diary-title-input,
+body.theme-stardew .diary-content-textarea {
+  background: #e5cc9c !important; /* 经典深凹陷木板黄 */
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: 600 !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+body.theme-stardew input[type="text"]:focus,
+body.theme-stardew input[type="time"]:focus,
+body.theme-stardew textarea:focus,
+body.theme-stardew select:focus,
+body.theme-stardew .diary-title-input:focus,
+body.theme-stardew .diary-content-textarea:focus {
+  outline: none !important;
+  border-color: #b57a3d !important;
+  background: #ebd9b8 !important;
+}
+
+/* 12. 日记信笺信纸卡片 */
+body.theme-stardew .diary-card {
+  background-color: #fbeecd !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 4px 0 rgba(0, 0, 0, 0.3) !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+}
+body.theme-stardew .diary-card:hover {
+  background-color: #fff4d9 !important;
+  box-shadow: 
+    0 0 0 3px #c68a4c,
+    0 6px 0 rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+body.theme-stardew .diary-card::before {
+  background: linear-gradient(to bottom, #ffd83b, #6a9f38) !important;
+}
+
+body.theme-stardew .diary-new-btn {
+  background: linear-gradient(180deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1a0f07,
+    inset 0 2px 0 rgba(255, 255, 255, 0.25) !important;
+  border-radius: 0px !important;
+  color: #fff !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 8px !important;
+  padding: 10px 14px !important;
+}
+body.theme-stardew .diary-new-btn:hover {
+  background: linear-gradient(180deg, #7cb844 0%, #4a9126 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 5px 0 #1a0f07,
+    inset 0 2px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+body.theme-stardew .diary-page-title {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #ffd83b !important;
+  text-shadow: 2px 2px 0 #3c1f0f !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 13px !important;
+}
+body.theme-stardew .diary-page-icon {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #ffd83b !important;
+  filter: none !important;
+}
+
+body.theme-stardew .diary-mood-chip {
+  background: #e5cc9c !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .diary-mood-count {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #b85c1c !important;
+  font-weight: bold !important;
+}
+
+/* 13. 实木滚动条 */
+body.theme-stardew *::-webkit-scrollbar {
+  width: 14px !important;
+}
+body.theme-stardew *::-webkit-scrollbar-track {
+  background: #ebd2ad !important;
+  border: 2.5px solid #3c1f0f !important;
+}
+body.theme-stardew *::-webkit-scrollbar-thumb {
+  background: #c9884c !important;
+  border: 2.5px solid #3c1f0f !important;
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+body.theme-stardew *::-webkit-scrollbar-thumb:hover {
+  background: #d8995a !important;
+}
+
+/* 14. 极佳标题排版 */
+body.theme-stardew h3,
+body.theme-stardew h4 {
+  font-family: 'Press Start 2P', monospace;
+  color: #4a2107 !important;
+  text-shadow: none !important;
+}
+
+body.theme-stardew h3 {
+  font-size: 11px !important;
+  border-bottom: 2.5px dashed #3c1f0f !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+body.theme-stardew h4 {
+  font-size: 9px !important;
+  line-height: 1.8;
+}
+
+body.theme-stardew .section-desc {
+  color: #733e14 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+}
+
+/* 确保正文可读性 */
+body.theme-stardew p,
+body.theme-stardew span,
+body.theme-stardew small,
+body.theme-stardew label,
+body.theme-stardew .stat-data .value,
+body.theme-stardew .stat-data .label,
+body.theme-stardew .diary-card-preview,
+body.theme-stardew .diary-content-textarea,
+body.theme-stardew .diary-title-input {
+  font-family: var(--font-family-body) !important;
+}
+
+/* 🌾 星露谷物语主题 - 日记信笺专属细节重写 */
+body.theme-stardew .diary-modal-content {
+  background-color: #f7e1b5 !important; /* 温暖复古羊皮纸黄 */
+  background-image: radial-gradient(circle at center, #fbeecd 0%, #f7e1b5 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 15px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 缝线线圈在星露谷下变成深色点缀 */
+body.theme-stardew .diary-paper-sheet::before {
+  border-color: rgba(60, 31, 15, 0.25) !important;
+}
+
+/* 铜质复古活页线圈 */
+body.theme-stardew .notebook-spiral-ring {
+  background: linear-gradient(to right, #ffd8a8, #d97706, #78350f, #d97706) !important;
+  border: 1.5px solid #3c1f0f !important;
+}
+
+body.theme-stardew .notebook-spiral-ring::after {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 像素缎带/胶带效果 */
+body.theme-stardew .left-tape {
+  background: repeating-linear-gradient(45deg, #b82d2d, #b82d2d 8px, #3c1f0f 8px, #3c1f0f 12px) !important; /* 经典能量红 */
+  border: 2px solid #3c1f0f !important;
+}
+
+body.theme-stardew .right-tape {
+  background: repeating-linear-gradient(-45deg, #ffd83b, #ffd83b 8px, #3c1f0f 8px, #3c1f0f 12px) !important; /* 经典金币黄 */
+  border: 2px solid #3c1f0f !important;
+}
+
+/* 书写线颜色重写 - 暖木纹横线 */
+body.theme-stardew .diary-modal-content .diary-content-textarea {
+  background: transparent !important;
+  background-image: linear-gradient(transparent, transparent 31px, rgba(60, 31, 15, 0.16) 31px) !important;
+  background-size: 100% 32px !important;
+  line-height: 32px !important;
+  box-shadow: none !important;
+  border: none !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .diary-modal-content .diary-title-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px dashed #3c1f0f !important;
+  box-shadow: none !important;
+  color: #4a2107 !important;
+}
+
+/* 小便签日期区 */
+body.theme-stardew .diary-meta-row {
+  background: #fcf1d9 !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-left: 5px solid #6a9f38 !important; /* 农作物绿色便签条 */
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .diary-date-display {
+  color: #4a2107 !important;
+  font-family: var(--font-family-body) !important;
+}
+
+/* 心情心情选择器在星露谷下为实木小圆扣 */
+body.theme-stardew .mood-emoji {
+  border: 2px solid #3c1f0f !important;
+  background: #ebd2ad !important;
+  border-radius: 0px !important;
+  box-shadow: 0 2px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .mood-opt input[type="radio"]:checked + .mood-emoji {
+  background: #ffd83b !important; /* 金黄色高亮 */
+  transform: scale(1.15) rotate(4deg) !important;
+  box-shadow: 0 4px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .mood-emoji:hover {
+  background: #fbeecd !important;
+}
+
+body.theme-stardew .diary-char-counter {
+  color: #733e14 !important;
+}
+
+/* 按钮行为 */
+body.theme-stardew .diary-actions .btn-secondary {
+  background: #c9884c !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: bold !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .diary-actions .btn-secondary:hover {
+  background: #d8995a !important;
+}
+
+body.theme-stardew .diary-actions .btn-primary {
+  background: linear-gradient(180deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #ffffff !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: bold !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .diary-actions .btn-primary:hover {
+  background: linear-gradient(180deg, #7cb844 0%, #4a9126 100%) !important;
+}
+
+body.theme-stardew .diary-paper-sticker {
+  border-color: #f7e1b5 !important;
+  box-shadow: 
+    0 0 0 2px #3c1f0f,
+    0 4px 10px rgba(0,0,0,0.3) !important;
+  border-radius: 0px !important;
+}
+
+
+/* ==========================================================================
+   15. 社交圈与情侣空间 Social & Couple Page Styles
+   ========================================================================== */
+
+.social-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  animation: fadeIn 0.3s ease;
+}
+
+.social-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 16px;
+}
+
+.social-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.social-page-icon {
+  font-size: 26px;
+  color: var(--neon-cyan);
+  filter: drop-shadow(0 0 8px rgba(96,165,250,0.3));
+}
+
+.social-page-title {
+  font-size: 20px;
+  font-weight: 800;
+  font-family: var(--font-family-title);
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.social-page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* 导航小标签卡片 */
+.social-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.social-tab-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.social-tab-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.social-tab-btn.active {
+  background: var(--neon-cyan) !important;
+  color: #ffffff !important;
+  border-color: var(--neon-cyan) !important;
+  box-shadow: 0 0 12px rgba(96,165,250,0.4);
+}
+
+.social-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.25s ease;
+}
+
+/* A. 个人档案样式 */
+.profile-card-layout {
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  overflow: visible;
+}
+
+.profile-decorations {
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  z-index: 2;
+}
+
+.profile-washi-tape {
+  width: 60px;
+  height: 18px;
+  background: rgba(96, 165, 250, 0.4);
+  transform: rotate(-4deg);
+  border-left: 2px dashed rgba(255,255,255,0.3);
+  border-right: 2px dashed rgba(255,255,255,0.3);
+}
+
+.profile-details-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profile-avatar-display {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 3px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  user-select: none;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  animation: avatar-float 4s ease-in-out infinite;
+}
+
+@keyframes avatar-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.profile-info-fields {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sync-code-share-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.sync-code-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  display: block;
+}
+
+.sync-code-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.sync-code-value {
+  font-family: monospace;
+  font-size: 18px;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+}
+
+/* 头像选择网格 */
+.profile-avatar-selector-section {
+  border-top: 1px dashed var(--border-glass);
+  padding-top: 20px;
+}
+
+.selector-title {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.avatar-option {
+  cursor: pointer;
+  position: relative;
+}
+
+.avatar-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+}
+
+.avatar-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: rgba(255,255,255,0.03);
+  transition: all 0.2s;
+}
+
+.avatar-badge:hover {
+  background: rgba(255,255,255,0.08);
+  transform: scale(1.05);
+}
+
+.avatar-emoji {
+  font-size: 26px;
+}
+
+.avatar-badge small {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+.avatar-option input[type="radio"]:checked + .avatar-badge {
+  border-color: var(--neon-cyan);
+  background: rgba(96,165,250,0.12);
+  box-shadow: 0 0 10px rgba(96,165,250,0.25);
+  transform: scale(1.08);
+}
+
+.profile-actions-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* B. 好友圈样式 */
+.add-friend-panel {
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.inline-form-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.inline-form-group input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  outline: none;
+}
+
+.friends-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.friends-list-header h3 {
+  font-size: 14px;
+  font-family: var(--font-family-body);
+  font-weight: bold;
+}
+
+.friends-count-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.friends-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  min-height: 120px;
+}
+
+.friend-card {
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.friend-card:hover {
+  transform: translateY(-2px);
+}
+
+.friend-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.friend-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.friend-token {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: monospace;
+}
+
+.friend-card-middle {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.friend-status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-label-group {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 可爱风自适应进度条 */
+.cozy-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cozy-progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--neon-cyan), #34d399);
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1);
+}
+
+.friend-streak-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #f97316; /* 橙色烈焰 */
+  margin-top: 6px;
+}
+
+.friend-card-bottom {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+.empty-social-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-social-state i {
+  font-size: 36px;
+  opacity: 0.3;
+}
+
+/* C. 情侣空间样式 */
+.couple-unbound-card {
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 480px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.unbound-icon-wrapper {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  animation: heartPulse 2.5s infinite;
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.1); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.bind-couple-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.bind-couple-form input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  text-align: center;
+  outline: none;
+}
+
+/* 已绑定情侣誓言卡 */
+.couple-bound-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.couple-anniversary-card {
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(135deg, rgba(244,63,94,0.1) 0%, rgba(139,92,246,0.1) 100%) !important;
+}
+
+.couple-washi-tape-decor {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(2deg);
+  width: 80px;
+  height: 18px;
+  background: rgba(244,63,94,0.3);
+  border-left: 2px dashed rgba(255,255,255,0.4);
+  border-right: 2px dashed rgba(255,255,255,0.4);
+}
+
+.heart-pulse-badge {
+  font-size: 36px;
+  animation: heartPulse 1.2s infinite;
+  display: inline-block;
+}
+
+.couple-anniversary-card h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 8px;
+  font-family: var(--font-family-title);
+  background: linear-gradient(to right, #f43f5e, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.couple-anniversary-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* 并肩打卡对比 */
+.couple-versus-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.couple-member-card {
+  flex: 1;
+  min-width: 240px;
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-role-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 20px;
+  color: var(--text-dim);
+  border: 1px solid var(--border-glass);
+}
+
+.my-couple-card {
+  border-left: 4px solid var(--neon-cyan) !important;
+}
+
+.partner-couple-card {
+  border-right: 4px solid var(--neon-rose) !important;
+}
+
+.member-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-top: 8px;
+}
+
+.member-name {
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.member-status-line {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.member-progress-text {
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+/* 连线桥梁 */
+.couple-bridge-decor {
+  width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.bridge-line {
+  width: 100%;
+  height: 4px;
+  background: dashed rgba(244,63,94,0.3);
+  border-bottom: 2px dashed rgba(255,255,255,0.1);
+}
+
+.bridge-heart {
+  position: absolute;
+  font-size: 20px;
+  color: #f43f5e;
+  animation: heartPulse 1.5s infinite;
+}
+
+.couple-actions-panel {
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+
+/* ==========================================================================
+   16. 社交聊天弹窗 Chat Dialog Styles
+   ========================================================================== */
+
+.chat-modal {
+  max-width: 500px;
+  width: 94vw;
+}
+
+.chat-modal-content {
+  padding: 0px !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  height: 75vh;
+  max-height: 520px;
+}
+
+.chat-modal-content .modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.chat-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-friend-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.chat-status-text {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* 气泡滚动区 */
+.chat-messages-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(0,0,0,0.1);
+}
+
+.chat-empty-state {
+  margin: auto;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  animation: bubble-in 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+@keyframes bubble-in {
+  0% { transform: translateY(10px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.chat-bubble-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.chat-bubble-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chat-bubble-text {
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: 12px;
+  word-break: break-all;
+}
+
+.chat-bubble-time {
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+/* 左侧：好友发送 */
+.chat-bubble.friend {
+  align-self: flex-start;
+}
+
+.chat-bubble.friend .chat-bubble-text {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
+  border-bottom-left-radius: 2px;
+}
+
+.chat-bubble.friend .chat-bubble-time {
+  align-self: flex-start;
+}
+
+/* 右侧：我发送 */
+.chat-bubble.me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-bubble.me .chat-bubble-text {
+  background: var(--neon-cyan);
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 4px 10px rgba(96,165,250,0.25);
+}
+
+.chat-bubble.me .chat-bubble-time {
+  align-self: flex-end;
+}
+
+/* 输入栏 */
+.chat-input-row {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-glass);
+  display: flex;
+  gap: 10px;
+  background: rgba(0,0,0,0.05);
+}
+
+.chat-input-row input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+}
+
+.chat-input-row input:focus {
+  border-color: rgba(96,165,250,0.5);
+  background: rgba(96,165,250,0.05);
+}
+
+
+/* ==========================================================================
+   17. 🌾 星露谷物语主题 - 社交与聊天专属细节重写 Stardew valley overrides
+   ========================================================================== */
+
+/* 作用域选择器 */
+body.theme-stardew .social-page-icon {
+  color: #ffd83b !important;
+  filter: none !important;
+}
+
+body.theme-stardew .social-page-title {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #ffd83b !important;
+  text-shadow: 2px 2px 0 #3c1f0f !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 12px !important;
+}
+
+body.theme-stardew .social-page-subtitle {
+  color: #733e14 !important;
+  font-weight: 600 !important;
+}
+
+/* 木板风格的选项卡 Tab */
+body.theme-stardew .social-tabs {
+  gap: 4px !important;
+}
+
+body.theme-stardew .social-tab-btn {
+  background-color: #c9884c !important;
+  border: 3.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  box-shadow: 
+    0 3px 0 #1a0f07,
+    inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .social-tab-btn:hover {
+  background-color: #d8995a !important;
+}
+
+body.theme-stardew .social-tab-btn.active {
+  background-color: #ffd83b !important; /* 激活为高亮金币黄 */
+  border-color: #3c1f0f !important;
+  color: #4a2107 !important;
+  box-shadow: 
+    0 4px 0 #1a0f07,
+    inset 0 2px 0 rgba(255,255,255,0.2) !important;
+  transform: translateY(1px);
+}
+
+/* 羊皮纸点阵本布局 */
+body.theme-stardew .profile-card-layout {
+  background-color: #f7e1b5 !important;
+  background-image: radial-gradient(#eedcc5 1.5px, transparent 1.5px) !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 10px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.theme-stardew .profile-card-layout::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 1.5px dashed rgba(60, 31, 15, 0.25);
+  border-radius: 0px;
+  pointer-events: none;
+}
+
+body.theme-stardew .profile-washi-tape {
+  background: repeating-linear-gradient(45deg, #b82d2d, #b82d2d 8px, #3c1f0f 8px, #3c1f0f 12px) !important; /* 能量红 */
+  border: 2px solid #3c1f0f !important;
+  width: 70px;
+  height: 20px;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .profile-avatar-display {
+  background: #fcf1d9 !important;
+  border: 3.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 6px 0 rgba(0,0,0,0.2) !important;
+  animation: avatar-float 4s ease-in-out infinite;
+}
+
+body.theme-stardew .sync-code-share-box {
+  background: #ebd2ad !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .sync-code-value {
+  color: #b85c1c !important;
+  font-weight: 900 !important;
+}
+
+body.theme-stardew .avatar-badge {
+  border: 2px solid #3c1f0f !important;
+  background: #e5cc9c !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .avatar-option input[type="radio"]:checked + .avatar-badge {
+  background: #ffd83b !important;
+  border-color: #3c1f0f !important;
+  box-shadow: 
+    0 4px 0 #1a0f07,
+    0 0 8px rgba(253, 216, 59, 0.4) !important;
+  transform: scale(1.1) rotate(2deg);
+}
+
+body.theme-stardew .avatar-badge small {
+  color: #733e14 !important;
+}
+
+body.theme-stardew .avatar-badge:hover {
+  background: #ebd9b8 !important;
+}
+
+/* 好友圈及卡片 */
+body.theme-stardew .add-friend-panel {
+  background: #f7e1b5 !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 0 0 6px #1a0f07 !important;
+}
+
+body.theme-stardew .add-friend-panel input {
+  background: #e5cc9c !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2) !important;
+}
+
+body.theme-stardew .add-friend-panel input:focus {
+  background: #ebd9b8 !important;
+  outline: none;
+}
+
+body.theme-stardew .friends-list-header h3 {
+  font-family: 'Press Start 2P', sans-serif !important;
+  font-size: 10px !important;
+  color: #ffd83b !important;
+  text-shadow: 2px 2px 0 #3c1f0f !important;
+}
+
+body.theme-stardew .friends-list-header h3 i {
+  color: #6a9f38 !important;
+}
+
+body.theme-stardew .friends-count-label {
+  color: #ffe6c4 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .friend-card {
+  background-color: #f7e1b5 !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 5px 0 rgba(0, 0, 0, 0.35) !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .friend-avatar {
+  background: #fcf1d9 !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 2px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .friend-name {
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .friend-token {
+  color: #733e14 !important;
+}
+
+body.theme-stardew .friend-card-middle {
+  background: #e5cc9c !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: inset 1.5px 1.5px 3px rgba(0,0,0,0.15) !important;
+}
+
+body.theme-stardew .status-label-group {
+  color: #733e14 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .cozy-progress-bar {
+  background: #dbbfa5 !important;
+  border: 1.5px solid #3c1f0f !important;
+  height: 10px !important;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .cozy-progress-fill {
+  background: linear-gradient(to right, #6a9f38, #3d7f1c) !important; /* 茂盛的绿草地进度 */
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .friend-streak-row {
+  color: #b82d2d !important; /* 红心烈焰 */
+}
+
+/* 好友操作按钮 */
+body.theme-stardew .friend-card-bottom .btn-primary {
+  background: linear-gradient(180deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 2px solid #3c1f0f !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  color: #ffffff !important;
+  border-radius: 0px !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .friend-card-bottom .btn-primary:hover {
+  background: linear-gradient(180deg, #7cb844 0%, #4a9126 100%) !important;
+}
+
+body.theme-stardew .friend-card-bottom .btn-danger-outline {
+  background: #c9884c !important;
+  border: 2px solid #3c1f0f !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  color: #4a2107 !important;
+  border-radius: 0px !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .friend-card-bottom .btn-danger-outline:hover {
+  background: #d8995a !important;
+}
+
+body.theme-stardew .empty-social-state {
+  color: #ffe6c4 !important;
+}
+
+/* 情侣绑定 */
+body.theme-stardew .couple-unbound-card {
+  background-color: #f7e1b5 !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 10px 20px rgba(0, 0, 0, 0.35) !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .couple-unbound-card p {
+  color: #733e14 !important;
+  font-weight: 600 !important;
+}
+
+body.theme-stardew .unbound-icon-wrapper {
+  background: #ebd2ad !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 4px 0 #1a0f07 !important;
+  color: #b82d2d !important;
+}
+
+body.theme-stardew .bind-couple-form input {
+  background: #ebd2ad !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.15) !important;
+}
+
+body.theme-stardew .bind-couple-form input:focus {
+  background: #fbeecd !important;
+}
+
+/* 情侣誓言卡星露谷版 */
+body.theme-stardew .couple-anniversary-card {
+  background-color: #f7e1b5 !important;
+  background-image: radial-gradient(circle at center, #ffd8d8 0%, #f7e1b5 100%) !important; /* 粉红情深渐变 */
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 10px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.theme-stardew .couple-anniversary-card h2 {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  color: #b82d2d !important;
+  text-shadow: 2px 2px 0 #ffd83b !important;
+}
+
+body.theme-stardew .couple-anniversary-sub {
+  color: #733e14 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .couple-washi-tape-decor {
+  background: repeating-linear-gradient(45deg, #b82d2d, #b82d2d 8px, #3c1f0f 8px, #3c1f0f 12px) !important;
+  border: 2px solid #3c1f0f !important;
+  width: 90px;
+  height: 20px;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .couple-member-card {
+  background-color: #f7e1b5 !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 0 0 3px #b57a3d,
+    0 5px 0 rgba(0, 0, 0, 0.35) !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .my-couple-card {
+  border-left: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 3px #6a9f38, /* 绿色木雕代表我 */
+    0 5px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+body.theme-stardew .partner-couple-card {
+  border-right: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 3px #b82d2d, /* 红色木雕代表他/她 */
+    0 5px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+body.theme-stardew .member-role-tag {
+  background-color: #ebd2ad !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .member-avatar {
+  background: #fcf1d9 !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .member-name {
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .member-status-line {
+  color: #733e14 !important;
+}
+
+body.theme-stardew .member-progress-text {
+  color: #4a2107 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .bridge-line {
+  background: dashed #3c1f0f !important;
+  border-bottom: none !important;
+}
+
+body.theme-stardew .bridge-heart {
+  color: #b82d2d !important;
+}
+
+body.theme-stardew .couple-actions-panel {
+  background-color: #ebd2ad !important;
+  border: 3px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 4px 0 #1a0f07 !important;
+}
+
+body.theme-stardew .couple-actions-panel .btn-primary {
+  background: linear-gradient(180deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+}
+
+body.theme-stardew .couple-actions-panel .btn-primary:hover {
+  background: linear-gradient(180deg, #7cb844 0%, #4a9126 100%) !important;
+}
+
+body.theme-stardew .couple-actions-panel .btn-danger-outline {
+  background: #c9884c !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  font-weight: bold !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .couple-actions-panel .btn-danger-outline:hover {
+  background: #d8995a !important;
+}
+
+/* 聊天弹窗星露谷化 */
+body.theme-stardew .chat-modal-content {
+  background-color: #f7e1b5 !important;
+  background-image: radial-gradient(circle at center, #fbeecd 0%, #f7e1b5 100%) !important;
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 
+    0 0 0 4px #b57a3d, 
+    0 0 0 7px #1a0f07, 
+    0 15px 30px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.theme-stardew .chat-modal-content .modal-header {
+  border-bottom: 3.5px dashed #3c1f0f !important;
+}
+
+body.theme-stardew .chat-friend-avatar {
+  background: #ebd2ad !important;
+  border: 2px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 2.5px 0 #1a0f07 !important;
+}
+
+body.theme-stardew #chat-window-title {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 8px !important;
+  border-bottom: none !important;
+  padding-bottom: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+body.theme-stardew .chat-status-text {
+  color: #733e14 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .chat-messages-scroll {
+  background: #e5cc9c !important; /* 凹陷的聊天木盒子 */
+  border-top: 3px solid #3c1f0f !important;
+  border-bottom: 3px solid #3c1f0f !important;
+  box-shadow: inset 2.5px 2.5px 5px rgba(0,0,0,0.2) !important;
+}
+
+body.theme-stardew .chat-empty-state {
+  color: #733e14 !important;
+  font-weight: bold !important;
+}
+
+/* 聊天气泡星露谷手账化 */
+body.theme-stardew .chat-bubble-avatar {
+  background: #fbeecd !important;
+  border: 1.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .chat-bubble.friend .chat-bubble-text {
+  background: #f7e1b5 !important; /* 羊皮纸纸片 */
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15) !important;
+  color: #4a2107 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .chat-bubble.me .chat-bubble-text {
+  background: #ffd83b !important; /* 金黄色便签纸 */
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15) !important;
+  color: #4a2107 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .chat-bubble-time {
+  color: #733e14 !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .chat-input-row {
+  border-top: none !important;
+  background: transparent !important;
+}
+
+body.theme-stardew .chat-input-row input {
+  background: #ebd2ad !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  color: #4a2107 !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.15) !important;
+  font-weight: bold !important;
+}
+
+body.theme-stardew .chat-input-row input:focus {
+  background: #fbeecd !important;
+}
+
+body.theme-stardew .chat-input-row .btn-primary {
+  background: linear-gradient(180deg, #6a9f38 0%, #3d7f1c 100%) !important;
+  border: 2.5px solid #3c1f0f !important;
+  border-radius: 0px !important;
+  box-shadow: 0 3px 0 #1a0f07 !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+}
+
+body.theme-stardew .chat-input-row .btn-primary:hover {
+  background: linear-gradient(180deg, #7cb844 0%, #4a9126 100%) !important;
+}
+
+/* ==========================================================================
+   🧽 海绵宝宝与派大星主题 UI Overrides (SpongeBob & Patrick Undersea Cozy Theme)
+   ========================================================================== */
+
+/* 1. 全局背景与浮动水泡背景特效 */
+body.theme-spongebob {
+  background: radial-gradient(circle, #dbf8f7 0%, #b5e8e5 60%, #8ed6d2 100%) !important;
+  color: #0b4e6a !important;
+  font-family: var(--font-family-body) !important;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 默认隐藏海绵宝宝主题装饰贴纸 */
+.spongebob-theme-decor {
+  display: none !important;
+}
+
+/* 仅在海绵宝宝主题下显示 */
+body.theme-spongebob .spongebob-theme-decor {
+  display: block !important;
+}
+
+/* 浮动彩色泡泡特效 */
+body.theme-spongebob::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    radial-gradient(circle, rgba(255,255,255,0.22) 10%, transparent 10%),
+    radial-gradient(circle, rgba(255,255,255,0.25) 15%, transparent 15%),
+    radial-gradient(circle, rgba(255,255,255,0.18) 8%, transparent 8%),
+    radial-gradient(circle, rgba(255,255,255,0.28) 12%, transparent 12%);
+  background-size: 120px 120px, 160px 160px, 90px 90px, 140px 140px;
+  background-position: 0 0, 40px 60px, 20px 10px, 70px 110px;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatSeaBubbles 30s linear infinite;
+}
+
+@keyframes floatSeaBubbles {
+  0% { background-position: 0 0, 40px 60px, 20px 10px, 70px 110px; }
+  50% { background-position: 20px -30px, 70px 0px, 0px -40px, 90px 40px; }
+  100% { background-position: 0 -60px, 40px -60px, 20px -70px, 70px -30px; }
+}
+
+/* ==========================================================================
+   🧩 海绵宝宝贴纸专属绝对定位样式 (SpongeBob Character Stickers Positioning)
+   ========================================================================== */
+.spongebob-peeking-sticker {
+  position: absolute;
+  top: -15px;
+  right: -25px;
+  width: 95px;
+  height: auto;
+  z-index: 5;
+  pointer-events: none;
+  transform: rotate(8deg);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+.patrick-sitting-sticker {
+  position: absolute;
+  top: -30px;
+  left: -20px;
+  width: 75px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+.gary-snail-sticker {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  width: 48px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.06));
+}
+
+.squidward-clarinet-sticker {
+  position: absolute;
+  top: -42px;
+  right: 25px;
+  width: 95px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  transform: rotate(-3deg);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+.patrick-waving-sticker {
+  position: absolute;
+  bottom: -15px;
+  right: -20px;
+  width: 82px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+.spongebob-celebrating-sticker {
+  position: absolute;
+  bottom: -8px;
+  right: -15px;
+  width: 90px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+/* ==========================================================================
+   2. 侧边栏温润沙滩渐变色 (Sidebar Sandy Pink-Yellow Gradient)
+   ========================================================================== */
+body.theme-spongebob .sidebar {
+  background: linear-gradient(180deg, #ffeef2 0%, #ffe3d1 50%, #fde7be 100%) !important;
+  border-right: 3.5px solid #ffd8a8 !important;
+  box-shadow: 6px 0 0 rgba(255, 216, 168, 0.12) !important;
+  position: relative !important;
+}
+
+body.theme-spongebob .brand {
+  border-bottom: 2.5px dashed #ffd8a8 !important;
+}
+
+body.theme-spongebob .brand-icon {
+  background: #ffffff !important;
+  border: 2px solid #ff9ebb !important;
+  color: #ff6b8b !important;
+  box-shadow: 0 4px 0 rgba(255, 107, 139, 0.2) !important;
+}
+
+body.theme-spongebob .brand-icon i {
+  color: #ff6b8b !important;
+  filter: none !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+body.theme-spongebob .brand-info h2 {
+  color: #4e2a0e !important; /* 泥土金棕色 */
+  font-family: var(--font-family-title) !important;
+  font-weight: bold !important;
+}
+
+body.theme-spongebob .brand-info span {
+  color: #d97706 !important;
+  font-weight: 800 !important;
+}
+
+/* 3. 导航按钮派大星短裤色与温馨小云朵 (Tab selectors) */
+body.theme-spongebob .nav-btn {
+  background: #fffbeb !important;
+  border: 2px solid #fde047 !important;
+  border-radius: 20px !important;
+  color: #78350f !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 0 #fef08a !important;
+  transition: all 0.2s !important;
+  font-weight: bold !important;
+}
+
+body.theme-spongebob .nav-btn:hover {
+  background: #fef9c3 !important;
+  transform: translateY(-1px) !important;
+}
+
+body.theme-spongebob .nav-btn.active {
+  background: #ff9ebb !important; /* 派大星粉色云朵 */
+  border-color: #ff6b8b !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0 #f43f5e !important;
+}
+
+body.theme-spongebob .nav-btn.active i {
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+/* 4. 今日完成度进度卡片 (Progress Box) */
+body.theme-spongebob .sidebar .progress-card {
+  background: linear-gradient(135deg, #fff0f3 0%, #fff7ed 100%) !important;
+  border: 3px solid #ff9ebb !important;
+  border-radius: 20px !important;
+  box-shadow: 0 6px 0 rgba(255, 158, 187, 0.25) !important;
+  margin-top: 18px !important;
+  position: relative !important;
+}
+
+body.theme-spongebob .radial-progress circle.bg {
+  stroke: #ffffff !important;
+  stroke-width: 10 !important;
+}
+
+body.theme-spongebob .radial-progress circle.fg {
+  stroke: #2ec5aa !important; /* 亮珊瑚翠绿色 */
+  stroke-width: 10 !important;
+}
+
+body.theme-spongebob .radial-progress-container .progress-text span {
+  color: #0b4e6a !important;
+  font-weight: bold !important;
+  font-size: 26px !important;
+}
+
+body.theme-spongebob .radial-progress-container .progress-text small {
+  color: #94a3b8 !important;
+}
+
+/* 核心统计指标卡片 (Sidebar Stat Items) */
+body.theme-spongebob .stats-panel .stat-item {
+  background: linear-gradient(135deg, #fff0f3 0%, #fffbeb 100%) !important;
+  border: 2.5px solid #ffcd3c !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 0 rgba(255, 205, 60, 0.22) !important;
+  color: #4e2a0e !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+body.theme-spongebob .stats-panel .stat-item:hover {
+  transform: translateY(-2px) !important;
+  border-color: #ff9ebb !important;
+  box-shadow: 0 6px 0 rgba(255, 158, 187, 0.28) !important;
+}
+
+body.theme-spongebob .stat-item .stat-icon {
+  background: #ffffff !important;
+  border: 2px solid #ffcd3c !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.theme-spongebob .stat-item .stat-icon.streak { color: #f43f5e !important; }
+body.theme-spongebob .stat-item .stat-icon.best-streak { color: #eab308 !important; }
+body.theme-spongebob .stat-item .stat-icon.total-checkins { color: #10b981 !important; }
+body.theme-spongebob .stat-item .stat-icon.ticket { color: #d97706 !important; }
+
+/* 5. 新建习惯主按钮 (Add Habit Button) */
+body.theme-spongebob .sidebar .add-habit-trigger {
+  background: linear-gradient(135deg, #ff9ebb 0%, #ff6b8b 100%) !important; /* 泡泡粉 */
+  border: 2px solid #ffffff !important;
+  border-radius: 24px !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 139, 0.35) !important;
+  padding: 12px 20px !important;
+  margin-top: 15px !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+body.theme-spongebob .sidebar .add-habit-trigger:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(255, 107, 139, 0.45) !important;
+}
+
+/* ==========================================================================
+   6. 卡片双描边与手纸设计 (Premium Parchment Cream Cards)
+   ========================================================================== */
+body.theme-spongebob .glass,
+body.theme-spongebob .modal-content,
+body.theme-spongebob .profile-card-layout,
+body.theme-spongebob .add-friend-panel,
+body.theme-spongebob .couple-unbound-card,
+body.theme-spongebob .couple-actions-panel {
+  background: rgba(255, 252, 240, 0.96) !important; /* 温润粉黄羊皮纸 */
+  border: 3.5px solid #ff9ebb !important; /* 珊瑚粉描边 */
+  border-radius: 24px !important;
+  box-shadow: 
+    0 8px 0 rgba(255, 158, 187, 0.2),
+    inset 0 3px 0 rgba(255, 255, 255, 0.9) !important;
+  color: #0b4e6a !important;
+  position: relative !important;
+}
+
+/* 7. 习惯卡片设计 (可爱的白面包环卡) */
+body.theme-spongebob .habit-card {
+  background: #ffffff !important;
+  border: 2.5px solid #ff9ebb !important; /* 派大星珊瑚粉框 */
+  border-radius: 20px !important;
+  box-shadow: 0 4px 0 rgba(255, 158, 187, 0.2) !important;
+  color: #0b4e6a !important;
+  padding: 12px 18px !important;
+  transition: all 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+body.theme-spongebob .habit-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: #ff6b8b !important;
+  box-shadow: 0 6px 0 rgba(255, 107, 139, 0.3) !important;
+}
+
+body.theme-spongebob .habit-title-text {
+  color: #0b4e6a !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: bold !important;
+}
+
+/* 8. 复古圆形选框与绿色圆 tick */
+body.theme-spongebob .checkmark {
+  background-color: #fff0f3 !important;
+  border: 2.5px solid #ff9ebb !important;
+  border-radius: 50% !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+body.theme-spongebob .checkbox-container:hover input ~ .checkmark {
+  background-color: #ffe4e6 !important;
+  border-color: #ff6b8b !important;
+}
+
+body.theme-spongebob .checkbox-container input:checked ~ .checkmark {
+  background-color: #2ed573 !important; /* 绿色钩 */
+  border-color: #26af5f !important;
+}
+
+body.theme-spongebob .checkbox-container input:checked ~ .checkmark::after {
+  border-color: white !important;
+  left: 8px !important;
+  top: 4px !important;
+  width: 5px !important;
+  height: 10px !important;
+}
+
+body.theme-spongebob .habit-card.checked {
+  background: #f0fdf4 !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 4px 0 rgba(52, 211, 153, 0.2) !important;
+}
+
+/* 分类标签设计 */
+body.theme-spongebob .cat-badge {
+  border-radius: 12px !important;
+  font-weight: bold !important;
+}
+body.theme-spongebob .cat-badge.health { background: #ffe4e6 !important; color: #ff6b8b !important; }
+body.theme-spongebob .cat-badge.learning { background: #e0f2fe !important; color: #0284c7 !important; }
+body.theme-spongebob .cat-badge.work { background: #fef3c7 !important; color: #d97706 !important; }
+body.theme-spongebob .cat-badge.mindset { background: #f3e8ff !important; color: #7c3aed !important; }
+
+/* 9. 过滤器 Tab (Pill layout) */
+body.theme-spongebob .filter-tabs .tab-btn {
+  background: #e0f2fe !important;
+  border: 1.5px solid #bae6fd !important;
+  color: #0369a1 !important;
+  border-radius: 18px !important;
+  padding: 6px 16px !important;
+  font-weight: bold !important;
+}
+
+body.theme-spongebob .filter-tabs .tab-btn.active {
+  background: #93c5fd !important; /* 紫蓝色激活气泡 */
+  border-color: #60a5fa !important;
+  color: #ffffff !important;
+}
+
+/* 10. 按钮重写 - 泡泡糖圆润按钮 */
+body.theme-spongebob .btn {
+  border-radius: 20px !important;
+  font-family: var(--font-family-body) !important;
+  font-weight: bold !important;
+}
+
+body.theme-spongebob .btn-primary {
+  background: linear-gradient(135deg, #ff9ebb 0%, #ff6b8b 100%) !important; /* 泡泡粉 */
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 139, 0.35) !important;
+  color: #ffffff !important;
+}
+
+body.theme-spongebob .btn-primary:hover {
+  background: linear-gradient(135deg, #ffa8c0 0%, #ff7ea0 100%) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.theme-spongebob .btn-secondary {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important; /* 蔚蓝色 */
+  border: 2px solid #7dd3fc !important;
+  color: #0369a1 !important;
+  box-shadow: 0 3px 0 #7dd3fc !important;
+}
+
+body.theme-spongebob .btn-secondary:hover {
+  background: linear-gradient(135deg, #f0f9ff 0%, #c0e8ff 100%) !important;
+}
+
+/* SpongeBob custom scrollbars */
+body.theme-spongebob *::-webkit-scrollbar {
+  width: 9px !important;
+  height: 9px !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-track {
+  background: rgba(255, 252, 240, 0.4) !important;
+  border-radius: 8px !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-thumb {
+  background: #ff9ebb !important;
+  border: 2.5px solid #fffdf5 !important;
+  border-radius: 8px !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-thumb:hover {
+  background: #ff6b8b !important;
+}
+
+/* 11. 我的档案细节 - 海洋泡泡风格 */
+body.theme-spongebob .profile-avatar-display {
+  background: #ffffff !important;
+  border: 3.5px solid #ff9ebb !important;
+  box-shadow: 0 6px 15px rgba(255, 158, 187, 0.3) !important;
+}
+
+body.theme-spongebob .sync-code-share-box {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 2px dashed #ff9ebb !important;
+  border-radius: 16px !important;
+}
+
+body.theme-spongebob .sync-code-value {
+  color: #0284c7 !important;
+}
+
+body.theme-spongebob .avatar-badge {
+  background: #ffffff !important;
+  border: 2px solid #ffcd3c !important;
+  border-radius: 16px !important;
+}
+
+body.theme-spongebob .avatar-option input[type="radio"]:checked + .avatar-badge {
+  border-color: #ff6b8b !important;
+  background: #ffe6eb !important;
+  box-shadow: 0 0 10px rgba(255, 107, 139, 0.35);
+}
+
+/* 12. 好友打卡圈卡片 */
+body.theme-spongebob .friend-card {
+  background: #ffffff !important;
+  border: 3.5px solid #ff9ebb !important;
+  border-radius: 20px !important;
+  box-shadow: 0 5px 0 rgba(255, 158, 187, 0.25) !important;
+}
+
+body.theme-spongebob .friend-avatar {
+  background: #ffeb99 !important;
+  border: 2px solid #ffcd3c !important;
+}
+
+body.theme-spongebob .cozy-progress-bar {
+  background: #f0f9ff !important;
+  border: 1.5px solid #bae6fd !important;
+  border-radius: 10px !important;
+  height: 12px !important;
+}
+
+body.theme-spongebob .cozy-progress-fill {
+  background: linear-gradient(to right, #ff9ebb, #ff6b8b) !important;
+}
+
+/* 9. 情侣空间与 Versus 进度条大 PK */
+body.theme-spongebob .couple-member-card {
+  background: #ffffff !important;
+  border: 3.5px solid #ff9ebb !important;
+  border-radius: 20px !important;
+  color: #0b4e6a !important;
+}
+
+body.theme-spongebob .my-couple-card {
+  border-left: 5px solid #38bdf8 !important;
+  box-shadow: 0 6px 0 rgba(56, 189, 248, 0.15) !important;
+}
+
+body.theme-spongebob .partner-couple-card {
+  border-right: 5px solid #ff6b8b !important;
+  box-shadow: 0 6px 0 rgba(255, 107, 139, 0.15) !important;
+}
+
+body.theme-spongebob .member-avatar {
+  background: #fffdf2 !important;
+  border: 2px solid #ffcd3c !important;
+}
+
+body.theme-spongebob .member-role-tag {
+  background: #ffeef2 !important;
+  border: 1.5px solid #ff9ebb !important;
+  color: #ff6b8b !important;
+  border-radius: 12px !important;
+}
+
+body.theme-spongebob .bridge-heart {
+  color: #ff6b8b !important;
+  font-size: 24px !important;
+  animation: heartPulse 1.8s infinite;
+}
+
+/* 10. 聊天弹窗 & 气泡 海绵宝宝和派大星的对话！ */
+body.theme-spongebob .chat-modal-content {
+  background: rgba(255, 252, 224, 0.98) !important;
+  border: 4px solid #ff9ebb !important;
+  border-radius: 28px !important;
+}
+
+body.theme-spongebob .chat-modal-content .modal-header {
+  border-bottom: 3px dashed #ff9ebb !important;
+}
+
+body.theme-spongebob .chat-friend-avatar {
+  background: #ffffff !important;
+  border: 2px solid #ffcd3c !important;
+}
+
+body.theme-spongebob .chat-messages-scroll {
+  background: #e0f7f4 !important; /* 蔚蓝色清凉水底 */
+  border-top: 3px solid #ff9ebb !important;
+  border-bottom: 3px solid #ff9ebb !important;
+  box-shadow: inset 0 4px 10px rgba(0,0,0,0.1) !important;
+  border-radius: 12px !important;
+}
+
+body.theme-spongebob .chat-bubble-avatar {
+  border: 1.5px solid #ffcd3c !important;
+}
+
+/* 好友发来的气泡：海绵宝宝经典黄色 */
+body.theme-spongebob .chat-bubble.friend .chat-bubble-text {
+  background: #fff59d !important;
+  border: 2.5px solid #fbc02d !important;
+  color: #5d4037 !important;
+  border-radius: 18px 18px 18px 4px !important;
+  box-shadow: 0 4px 0 rgba(251, 192, 45, 0.3) !important;
+  font-weight: 600 !important;
+}
+
+/* 我发去的气泡：派大星可爱粉色 */
+body.theme-spongebob .chat-bubble.me .chat-bubble-text {
+  background: #ffb3c6 !important;
+  border: 2.5px solid #ff6b8b !important;
+  color: #ffffff !important;
+  border-radius: 18px 18px 4px 18px !important;
+  box-shadow: 0 4px 0 rgba(255, 107, 139, 0.3) !important;
+  font-weight: 600 !important;
+}
+
+body.theme-spongebob .chat-input-row input {
+  background: #ffffff !important;
+  border: 2.5px solid #ffcd3c !important;
+  border-radius: 20px !important;
+  color: #0b4e6a !important;
+}
+
+body.theme-spongebob .chat-input-row input:focus {
+  border-color: #ff6b8b !important;
+}
+
+/* 11. 温馨日记本信纸 (菠萝屋格格纸) */
+body.theme-spongebob .diary-modal-content {
+  background-color: #fffde8 !important;
+  background-image: radial-gradient(circle at center, #ffffff 0%, #fffde8 100%) !important;
+  border: 3.5px solid #ff9ebb !important;
+  border-radius: 28px !important;
+  box-shadow: 0 15px 40px rgba(255, 158, 187, 0.35) !important;
+}
+
+body.theme-spongebob .diary-paper-sheet::before {
+  border-color: rgba(255, 158, 187, 0.25) !important;
+}
+
+body.theme-spongebob .notebook-spiral-ring {
+  background: linear-gradient(to right, #ffd1d1, #ff9ebb, #ff6b8b, #ff9ebb) !important;
+  border: 1.5px solid #ff6b8b !important;
+}
+
+body.theme-spongebob .left-tape {
+  background: #ff9ebb !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 3px 0 rgba(255, 158, 187, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+body.theme-spongebob .right-tape {
+  background: #ffd54f !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 3px 0 rgba(255, 213, 79, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+body.theme-spongebob .diary-modal-content .diary-content-textarea {
+  background: transparent !important;
+  background-image: linear-gradient(transparent, transparent 31px, rgba(255, 158, 187, 0.2) 31px) !important;
+  background-size: 100% 32px !important;
+  line-height: 32px !important;
+  color: #0b4e6a !important;
+}
+
+body.theme-spongebob .diary-modal-content .diary-title-input {
+  background: transparent !important;
+  border-bottom: 2px dashed #ff9ebb !important;
+  color: #0b4e6a !important;
+  font-weight: bold !important;
+}
+
+body.theme-spongebob .diary-meta-row {
+  background: #ffffff !important;
+  border: 2.5px solid #ff9ebb !important;
+  border-left: 6px solid #ffcd3c !important;
+  border-radius: 12px !important;
+}
+
+body.theme-spongebob .mood-emoji {
+  border: 2px solid #ffcd3c !important;
+  background: #ffffff !important;
+  border-radius: 50% !important;
+}
+
+body.theme-spongebob .mood-opt input[type="radio"]:checked + .mood-emoji {
+  background: #ff9ebb !important;
+  border-color: #ff6b8b !important;
+  transform: scale(1.15) rotate(4deg) !important;
+  box-shadow: 0 4px 10px rgba(255, 107, 139, 0.35) !important;
+}
+
+/* 下拉菜单与输入框 */
+body.theme-spongebob input[type="text"],
+body.theme-spongebob input[type="time"],
+body.theme-spongebob textarea,
+body.theme-spongebob select {
+  background: #ffffff !important;
+  border: 2.5px solid #ff9ebb !important;
+  border-radius: 16px !important;
+  color: #0b4e6a !important;
+  font-weight: bold !important;
+}
+
+/* 12. 标志性的粉色关闭按钮 */
+body.theme-spongebob .close-btn {
+  background: #ff6b8b !important;
+  color: #ffffff !important;
+  border: 2.5px solid #ffffff !important;
+  box-shadow: 0 4px 10px rgba(255, 107, 139, 0.3) !important;
+  border-radius: 50% !important;
+}
+
+body.theme-spongebob .close-btn:hover {
+  background: #ff8fa3 !important;
+  transform: scale(1.1) !important;
+}
+
+/* 挂载网页滚动条水族馆化 */
+body.theme-spongebob *::-webkit-scrollbar {
+  width: 10px !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-track {
+  background: #e0f7f4 !important;
+  border-radius: 10px !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-thumb {
+  background: #ff9ebb !important;
+  border-radius: 10px !important;
+  border: 2px solid #e0f7f4 !important;
+}
+body.theme-spongebob *::-webkit-scrollbar-thumb:hover {
+  background: #ff6b8b !important;
+}
+
+/* 挂载在主页标题与热力图 */
+body.theme-spongebob .heatmap-cell.level-0 { background: #e0f2fe !important; border-radius: 6px !important; }
+body.theme-spongebob .heatmap-cell.level-1 { background: #ffeb99 !important; border-radius: 6px !important; }
+body.theme-spongebob .heatmap-cell.level-2 { background: #ffd54f !important; border-radius: 6px !important; }
+body.theme-spongebob .heatmap-cell.level-3 { background: #ff9ebb !important; border-radius: 6px !important; }
+body.theme-spongebob .heatmap-cell.level-4 { 
+  background: #ff6b8b !important; 
+  border-radius: 6px !important;
+  box-shadow: 0 0 8px rgba(255, 107, 139, 0.6) !important;
+}
+
+/* 13. 海绵宝宝特色海底世界横幅插画 */
+.spongebob-scene-banner {
+  display: none;
+}
+
+body.theme-spongebob .spongebob-scene-banner {
+  display: block !important;
+  width: 100% !important;
+  height: 260px !important;
+  background-image: url('assets/bikini_bottom.png') !important;
+  background-size: cover !important;
+  background-position: center 25% !important;
+  background-repeat: no-repeat !important;
+  border-radius: 24px !important;
+  border: 3.5px solid #ff9ebb !important;
+  box-shadow: 
+    0 8px 0 rgba(255, 158, 187, 0.25),
+    inset 0 3px 0 rgba(255, 255, 255, 0.8) !important;
+  margin-bottom: 20px !important;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s !important;
+  cursor: pointer;
+}
+
+body.theme-spongebob .spongebob-scene-banner:hover {
+  transform: translateY(-3px) scale(1.005) !important;
+  box-shadow: 
+    0 12px 0 rgba(255, 107, 139, 0.35),
+    inset 0 3px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+@media (max-width: 768px) {
+  body.theme-spongebob .spongebob-scene-banner {
+    height: 160px !important;
+    border-radius: 16px !important;
+    border-width: 2.5px !important;
+    margin-bottom: 14px !important;
+  }
+}
+
+/* 14. 主页专属比奇堡海底世界插画横幅 */
+.spongebob-home-banner {
+  display: none;
+}
+
+body.theme-spongebob .spongebob-home-banner {
+  display: block !important;
+  width: 100% !important;
+  height: 260px !important;
+  background-image: url('assets/bikini_bottom.png') !important;
+  background-size: cover !important;
+  background-position: center 25% !important;
+  background-repeat: no-repeat !important;
+  border-radius: 24px !important;
+  border: 3.5px solid #ff9ebb !important;
+  box-shadow: 
+    0 8px 0 rgba(255, 158, 187, 0.25),
+    inset 0 3px 0 rgba(255, 255, 255, 0.8) !important;
+  margin-bottom: 20px !important;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s !important;
+  cursor: pointer;
+}
+
+body.theme-spongebob .spongebob-home-banner:hover {
+  transform: translateY(-3px) scale(1.005) !important;
+  box-shadow: 
+    0 12px 0 rgba(255, 107, 139, 0.35),
+    inset 0 3px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+@media (max-width: 768px) {
+  body.theme-spongebob .spongebob-home-banner {
+    height: 150px !important;
+    border-radius: 16px !important;
+    border-width: 2.5px !important;
+    margin-bottom: 14px !important;
+  }
+}
+
+/* ==========================================================================
+   💖 伴侣自律秘密日记信件卡片样式 (Themed Partner's Postcard Diary Styles)
+   ========================================================================== */
+.partner-diary-card {
+  border: 1px solid rgba(244, 63, 94, 0.4) !important;
+  background: rgba(244, 63, 94, 0.03) !important;
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.1) !important;
+  transition: all 0.25s ease !important;
+  cursor: pointer !important;
+}
+
+.partner-diary-card:hover {
+  transform: translateY(-2px) scale(1.008) !important;
+  border-color: rgba(244, 63, 94, 0.8) !important;
+  box-shadow: 0 8px 24px rgba(244, 63, 94, 0.25) !important;
+  background: rgba(244, 63, 94, 0.06) !important;
+}
+
+/* 🌾 星露谷主题下，伴侣的卡片是可爱的粉红小碎花羊皮纸框 */
+body.theme-stardew .partner-diary-card {
+  background-color: #fff0f3 !important;
+  border: 3px solid #ff9ebb !important;
+  box-shadow: 
+    0 0 0 3px #fca5a5,
+    0 4px 0 rgba(0, 0, 0, 0.3) !important;
+  color: #4a2107 !important;
+}
+
+body.theme-stardew .partner-diary-card:hover {
+  background-color: #fff5f7 !important;
+  box-shadow: 
+    0 0 0 3px #f87171,
+    0 6px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 🧽 海绵宝宝主题下，伴侣的卡片是派大星珊瑚粉色 */
+body.theme-spongebob .partner-diary-card {
+  background-color: #ffe6eb !important;
+  border: 3.5px solid #ff6b8b !important;
+  box-shadow: 0 5px 0 rgba(255, 107, 139, 0.2) !important;
+  color: #0b4e6a !important;
+}
+
+body.theme-spongebob .partner-diary-card:hover {
+  background-color: #fff0f3 !important;
+  border-color: #ff477e !important;
+  box-shadow: 0 6px 0 rgba(255, 71, 126, 0.35) !important;
+}
+
+/* ==========================================================================
+   🟢 实时在线状态呼吸灯与时间排版样式 (Live Online Status Glowing Dot & Text)
+   ========================================================================== */
+.member-online-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -6px;
+  margin-bottom: 2px;
+}
+
+.online-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.online-status-dot.online {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px #10b981 !important;
+  animation: pulseGreen 2s infinite alternate !important;
+}
+
+.online-status-dot.offline {
+  background-color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+@keyframes pulseGreen {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 4px #10b981;
+  }
+  100% {
+    transform: scale(1.25);
+    box-shadow: 0 0 10px #10b981;
+  }
+}
+
+.online-status-text {
+  font-size: 11px;
+  color: var(--text-dim) !important;
+  font-weight: 500;
+}
+
+/* 🌾 星露谷主题配色微调 */
+body.theme-stardew .online-status-text {
+  color: #8b5a2b !important; /* 泥土棕色 */
+}
+
+/* 🧽 海绵宝宝主题配色微调 */
+body.theme-spongebob .online-status-text {
+  color: #0b4e6a !important; /* 深蓝色 */
+}
+
+

@@ -1,0 +1,4 @@
+node_modules/
+*.command
+.DS_Store
+cc/

@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>自律打卡 Habit Tracker</title>
+  
+  <!-- PWA Support for iOS & Android -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="自律打卡">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10008/10008892.png">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- A. 全局自定义图片背景与毛玻璃偏光遮罩层 -->
+  <div class="global-background-container" id="global-bg-container"></div>
+  <div class="global-background-overlay"></div>
+
+  <div class="app-container">
+    <!-- 1. 响应式侧边栏/底部栏 Sidebar (在移动端会自动折叠为悬浮抽屉或简化，在桌面端常驻) -->
+    <aside class="sidebar" id="sidebar-panel">
+      <!-- [NEW] 海绵宝宝主题专属贴纸 -->
+      <img src="assets/spongebob_peeking.png" class="spongebob-peeking-sticker spongebob-theme-decor" alt="SpongeBob Peeking">
+
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-crown neon-glow"></i>
+        </div>
+        <div class="brand-info">
+          <h2>自律打卡</h2>
+          <span>HABIT TRACKER</span>
+        </div>
+      </div>
+
+      <!-- 今日打卡百分比环 -->
+      <div class="card progress-card glass">
+        <!-- [NEW] 派大星坐在进度条上贴纸 -->
+        <img src="assets/patrick_sitting.png" class="patrick-sitting-sticker spongebob-theme-decor" alt="Patrick Sitting">
+        <h3>今日完成度</h3>
+        <div class="radial-progress-container">
+          <svg class="radial-progress" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="bg" cx="60" cy="60" r="48"></circle>
+            <circle class="fg" cx="60" cy="60" r="48" id="today-radial-fg" stroke-dasharray="301.6" stroke-dashoffset="301.6"></circle>
+          </svg>
+          <div class="progress-text">
+            <span id="today-percentage">0%</span>
+            <small id="today-stats-fraction">0 / 0</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心统计指标卡片 -->
+      <div class="stats-panel">
+        <div class="stat-item glass">
+          <div class="stat-icon streak"><i class="fa-solid fa-fire-flame-curved"></i></div>
+          <div class="stat-data">
+            <span class="value" id="current-streak">0 天</span>
+            <span class="label">当前连续</span>
+          </div>
+        </div>
+        <div class="stat-item glass">
+          <div class="stat-icon best-streak"><i class="fa-solid fa-trophy"></i></div>
+          <div class="stat-data">
+            <span class="value" id="best-streak">0 天</span>
+            <span class="label">最高记录</span>
+          </div>
+        </div>
+        <div class="stat-item glass">
+          <div class="stat-icon total-checkins"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="stat-data">
+            <span class="value" id="total-count">0 次</span>
+            <span class="label">打卡总次数</span>
+          </div>
+        </div>
+        <!-- [NEW] 补卡券资产卡片 -->
+        <div class="stat-item glass ticket-card-item" id="ticket-asset-card">
+          <div class="stat-icon ticket"><i class="fa-solid fa-ticket neon-glow-gold"></i></div>
+          <div class="stat-data">
+            <span class="value" id="ticket-count-display">0 张</span>
+            <span class="label">当前拥有补卡券</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新建习惯主按钮 -->
+      <button class="btn btn-primary add-habit-trigger" id="btn-add-habit-sidebar">
+        <i class="fa-solid fa-plus-circle"></i>
+        <span>添加新习惯</span>
+      </button>
+
+      <!-- 页面导航 -->
+      <nav class="sidebar-nav">
+        <!-- [NEW] 小蜗在主页旁爬行贴纸 -->
+        <img src="assets/gary_snail.png" class="gary-snail-sticker spongebob-theme-decor" alt="Gary Snail">
+        <button class="nav-btn active" id="nav-btn-home" data-page="home">
+          <i class="fa-solid fa-house"></i>
+          <span>主页</span>
+        </button>
+        <button class="nav-btn" id="nav-btn-diary" data-page="diary">
+          <i class="fa-solid fa-book-open"></i>
+          <span>日记</span>
+        </button>
+        <button class="nav-btn" id="nav-btn-social" data-page="social">
+          <i class="fa-solid fa-user-group"></i>
+          <span>社交圈</span>
+        </button>
+      </nav>
+
+      <!-- 备份、数据导出/导入与云同步设置按钮 -->
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary" id="btn-generate-report" title="自律时光成就报告">
+          <i class="fa-solid fa-award neon-glow-gold"></i>
+          <span>成就总结</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-open-settings" title="同步与背景设置">
+          <i class="fa-solid fa-sliders"></i>
+          <span>系统设置</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 2. 右侧主内容区 Main Content (在手机上自适应为铺满的 Mobile Dashboard) -->
+    <main class="main-content">
+      <!-- 移动端专用页眉 Mobile Bar -->
+      <div class="mobile-header">
+        <div class="mobile-brand">
+          <i class="fa-solid fa-crown neon-glow"></i>
+          <h1>自律打卡</h1>
+        </div>
+        <div class="mobile-header-actions">
+          <button class="icon-btn-circle" id="btn-nav-diary-mobile" title="日记" style="color: #a78bfa;"><i class="fa-solid fa-book-open"></i></button>
+          <button class="icon-btn-circle" id="btn-nav-social-mobile" title="社交圈" style="color: #60a5fa;"><i class="fa-solid fa-user-group"></i></button>
+          <button class="icon-btn-circle" id="btn-generate-report-mobile" title="自律成就" style="color: #fbbf24;"><i class="fa-solid fa-award"></i></button>
+          <button class="icon-btn-circle" id="btn-add-habit-mobile" title="添加新习惯"><i class="fa-solid fa-plus"></i></button>
+          <button class="icon-btn-circle" id="btn-open-settings-mobile" title="设置"><i class="fa-solid fa-sliders"></i></button>
+        </div>
+      </div>
+
+      <!-- [NEW] 海绵宝宝与派大星主题主页专属海底世界插画横幅 (仅在海绵宝宝主题下呈现) -->
+      <div class="spongebob-home-banner"></div>
+
+      <!-- 顶部固定大面积折线图 Top Sticky Chart Area (占比约 35%-40%) -->
+      <section class="top-chart-section glass">
+        <!-- [NEW] 章鱼哥吹双簧管贴纸 -->
+        <img src="assets/squidward_clarinet.png" class="squidward-clarinet-sticker spongebob-theme-decor" alt="Squidward Clarinet">
+
+        <div class="chart-header-row">
+          <div class="welcome-box">
+            <h2 id="welcome-greeting">早上好！</h2>
+            <p id="motivational-quote">自律，是通往自由的唯一阶梯。</p>
+          </div>
+          <!-- 日期切换条 -->
+          <div class="date-navigator">
+            <button class="nav-arrow" id="btn-prev-day"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="current-date-info">
+              <span id="date-display">05月23日</span>
+              <span id="day-badge" class="badge badge-today">今天</span>
+            </div>
+            <button class="nav-arrow" id="btn-next-day"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <div class="sticky-chart-container">
+          <canvas id="habit-trend-chart"></canvas>
+        </div>
+      </section>
+
+      <!-- [NEW] 常驻自律时光复盘面板 (Option B) -->
+      <section class="review-panel-section glass" id="review-dashboard-card">
+        <!-- [NEW] 派大星招手贴纸 -->
+        <img src="assets/patrick_waving.png" class="patrick-waving-sticker spongebob-theme-decor" alt="Patrick Waving">
+
+        <div class="review-stars-container">
+          <span class="review-label">自律星级:</span>
+          <div class="review-stars" id="review-stars-list">
+            <!-- 动态生成 5 颗发光星星 -->
+          </div>
+        </div>
+        <div class="review-badge-container">
+          <span class="review-badge" id="review-focus-badge">🎯 最强自律偏好: 正在核算中...</span>
+        </div>
+        <div class="review-coach-advice" id="review-coach-advice-text">
+          “自律是微光汇聚的江海，每一次坚持都是对人生的重塑。”
+        </div>
+      </section>
+
+      <!-- 下方垂直滚动列表区 Bottom Checklist Area (支持滚动，20+ 条任务平铺) -->
+      <section class="bottom-checklist-section">
+        <!-- [NEW] 海绵宝宝庆祝贴纸 -->
+        <img src="assets/spongebob_celebrating.png" class="spongebob-celebrating-sticker spongebob-theme-decor" alt="SpongeBob Celebrating">
+
+        <!-- 分类切换过滤器 Tab -->
+        <div class="filter-tabs-row">
+          <div class="filter-tabs">
+            <button class="tab-btn active" data-category="all">全部</button>
+            <button class="tab-btn" data-category="health">健康</button>
+            <button class="tab-btn" data-category="learning">学习</button>
+            <button class="tab-btn" data-category="work">工作</button>
+            <button class="tab-btn" data-category="mindset">心智</button>
+          </div>
+        </div>
+
+        <!-- [NEW] 补卡券一键复活历史打卡提示条 -->
+        <div class="resurrect-banner glass" id="resurrect-banner-pane" style="display: none;">
+          <div class="resurrect-banner-left">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>当天打卡未达标（50% 完成度），连续打卡中断！</span>
+          </div>
+          <button class="btn btn-primary btn-sm btn-resurrect" id="btn-use-ticket-resurrect">
+            <i class="fa-solid fa-ticket"></i>
+            <span>消耗 1 张补卡券一键补卡</span>
+          </button>
+        </div>
+
+        <!-- 极紧凑任务列表容器 (44px 单项高度，垂直滚动) -->
+        <div class="compact-habit-list" id="habit-list-container">
+          <!-- 动态加载习惯列表 -->
+        </div>
+      </section>
+
+      <!-- 底部附加分析卡片区 (30天热力图与100天自律挑战点阵图双视图) -->
+      <section class="bottom-analytics-section glass">
+        <div class="card-header analytics-header">
+          <div class="analytics-tabs">
+            <button class="analytics-tab-btn active" id="tab-heatmap-btn">
+              <i class="fa-solid fa-square-poll-vertical"></i> 30天热力图
+            </button>
+            <button class="analytics-tab-btn" id="tab-dotmatrix-btn">
+              <i class="fa-solid fa-circle-dot"></i> 100天星空挑战
+            </button>
+          </div>
+          <span class="analytics-action-hint" id="analytics-action-hint">点击格子/圆点可时光回退补卡</span>
+        </div>
+
+        <!-- 30天热力图容器 -->
+        <div class="heatmap-panel" id="heatmap-view-pane">
+          <div class="heatmap-grid" id="heatmap-grid-container"></div>
+          <div class="heatmap-legend">
+            <span>少</span>
+            <span class="legend-color level-0"></span>
+            <span class="legend-color level-1"></span>
+            <span class="legend-color level-2"></span>
+            <span class="legend-color level-3"></span>
+            <span class="legend-color level-4"></span>
+            <span>多</span>
+          </div>
+        </div>
+
+        <!-- 100天自律挑战点阵图容器 (默认隐藏) -->
+        <div class="dotmatrix-panel" id="dotmatrix-view-pane" style="display: none;">
+          <div class="dotmatrix-grid" id="dotmatrix-grid-container"></div>
+          <div class="dotmatrix-legend">
+            <div class="legend-stars">
+              <span class="legend-star-item"><span class="star-color level-empty"></span> 无任务</span>
+              <span class="legend-star-item"><span class="star-color level-missed"></span> 未达标</span>
+              <span class="legend-star-item"><span class="star-color level-achieved"></span> 达标 (≥50%)</span>
+              <span class="legend-star-item"><span class="star-color level-perfect"></span> 完美 (100%)</span>
+            </div>
+            <span class="dotmatrix-streak-summary" id="dotmatrix-streak-summary">100天达标率: --%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 日记页面 (默认隐藏) ===================== -->
+      <div class="diary-page" id="diary-page" style="display:none;">
+        <!-- 日记页头部 -->
+        <div class="diary-page-header">
+          <div class="diary-title-group">
+            <i class="fa-solid fa-book-open diary-page-icon"></i>
+            <div>
+              <h2 class="diary-page-title">我的日记</h2>
+              <p class="diary-page-subtitle">记录每一天的心情与感悟</p>
+            </div>
+          </div>
+          <button class="btn btn-primary diary-new-btn" id="btn-new-diary">
+            <i class="fa-solid fa-pen-nib"></i>
+            <span>写今日日记</span>
+          </button>
+        </div>
+
+        <!-- 情绪统计栏 -->
+        <div class="diary-mood-bar glass" id="diary-mood-bar">
+          <div class="diary-mood-stat" id="diary-stat-total">
+            <span class="diary-mood-count">0</span>
+            <span class="diary-mood-label">篇日记</span>
+          </div>
+          <div class="diary-mood-divider"></div>
+          <div class="diary-mood-emojis" id="diary-mood-emojis">
+            <!-- 动态生成情绪分布 -->
+          </div>
+          <div class="diary-mood-divider"></div>
+          <div class="diary-streak-info" id="diary-streak-info">
+            <i class="fa-solid fa-fire-flame-curved" style="color:#f97316;"></i>
+            <span id="diary-streak-text">连续记录 0 天</span>
+          </div>
+        </div>
+
+        <!-- 日记列表 -->
+        <div class="diary-list" id="diary-list-container">
+          <!-- 动态生成 -->
+        </div>
+      </div>
+
+      <!-- ===================== [NEW] 社交圈与情侣空间页面 (默认隐藏) ===================== -->
+      <div class="social-page" id="social-page" style="display:none;">
+        <div class="social-header">
+          <div class="social-title-group">
+            <i class="fa-solid fa-user-group social-page-icon"></i>
+            <div>
+              <h2 class="social-page-title">我们的社交圈</h2>
+              <p class="social-page-subtitle">交换同步码，和好友、伴侣一同见证彼此的坚持 🌱</p>
+            </div>
+          </div>
+          <div class="social-tabs">
+            <button class="social-tab-btn active" data-tab="profile">
+              <i class="fa-solid fa-user-gear"></i> 我的档案
+            </button>
+            <button class="social-tab-btn" data-tab="friends">
+              <i class="fa-solid fa-seedling"></i> 好友打卡圈
+            </button>
+            <button class="social-tab-btn" data-tab="couple">
+              <i class="fa-solid fa-heart"></i> 情侣空间
+            </button>
+          </div>
+        </div>
+
+        <!-- [NEW] 海绵宝宝与派大星主题专属海底世界插画横幅 (仅在海绵宝宝主题下呈现) -->
+        <div class="spongebob-scene-banner"></div>
+
+        <!-- A. 我的档案 Tab Panel -->
+        <div class="social-panel" id="social-panel-profile">
+          <div class="profile-card-layout glass">
+            <div class="profile-decorations">
+              <div class="profile-washi-tape"></div>
+            </div>
+            
+            <div class="profile-details-section">
+              <div class="profile-avatar-display" id="my-avatar-preview-box">🐮</div>
+              <div class="profile-info-fields">
+                <div class="form-group">
+                  <label for="profile-nickname-input">我的自律昵称</label>
+                  <input type="text" id="profile-nickname-input" placeholder="起个温暖的昵称吧" maxlength="12" value="自律冒险者">
+                </div>
+                <div class="sync-code-share-box">
+                  <span class="sync-code-label">我的同步码 (分享给好友)：</span>
+                  <div class="sync-code-actions">
+                    <strong class="sync-code-value" id="my-social-token-text">未绑定同步码</strong>
+                    <button class="btn btn-secondary btn-small" id="btn-copy-social-token">
+                      <i class="fa-regular fa-copy"></i> 复制
+                    </button>
+                  </div>
+                  <small style="color:var(--text-dim);display:block;margin-top:6px;">⚠️ 请在系统设置中“开启云同步”以生成并自动保存你的专属同步码！</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-avatar-selector-section">
+              <h4 class="selector-title">选择我的萌宠头像</h4>
+              <div class="avatar-grid">
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="cow" checked>
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐮</span>
+                    <small>快乐小牛</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="chick">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐤</span>
+                    <small>胖胖小鸡</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="dog">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐶</span>
+                    <small>小黄狗</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="cat">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐱</span>
+                    <small>懒懒小猫</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="pig">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐷</span>
+                    <small>粉红小猪</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="slime">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">💧</span>
+                    <small>星光泥泥</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="spongebob">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🧽</span>
+                    <small>海绵宝宝</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="patrick">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">⭐️</span>
+                    <small>派大星</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="squidward">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🐙</span>
+                    <small>章鱼哥</small>
+                  </span>
+                </label>
+                <label class="avatar-option">
+                  <input type="radio" name="my-avatar" value="mrkrabs">
+                  <span class="avatar-badge">
+                    <span class="avatar-emoji">🦀</span>
+                    <small>谢老板</small>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="profile-actions-row">
+              <button class="btn btn-primary" id="btn-save-profile">
+                <i class="fa-solid fa-floppy-disk"></i> 保存并上传个人档案
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- B. 好友打卡圈 Tab Panel -->
+        <div class="social-panel" id="social-panel-friends" style="display:none;">
+          <!-- 添加好友表单 -->
+          <div class="add-friend-panel glass">
+            <div class="form-group inline-form-group">
+              <input type="text" id="add-friend-token-input" placeholder="输入好友的同步码 (例如: SYNC-123456)" maxlength="15">
+              <button class="btn btn-primary" id="btn-add-friend-submit">
+                <i class="fa-solid fa-user-plus"></i> 添加好友
+              </button>
+            </div>
+          </div>
+
+          <!-- 好友圈列表 -->
+          <div class="friends-list-header">
+            <h3><i class="fa-solid fa-seedling"></i> 大家的自律成长田野</h3>
+            <span class="friends-count-label" id="friends-count-text">共有 0 位打卡伙伴</span>
+          </div>
+          
+          <div class="friends-cards-grid" id="friends-list-container">
+            <!-- 动态生成好友打卡状态卡片 -->
+            <div class="empty-social-state">
+              <i class="fa-solid fa-ghost"></i>
+              <p>这里空空如也，快去向朋友索要同步码添加他们吧！</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- C. 情侣空间 Tab Panel -->
+        <div class="social-panel" id="social-panel-couple" style="display:none;">
+          <!-- 1. 未绑定情侣状态 -->
+          <div class="couple-unbound-card glass" id="couple-unbound-view">
+            <div class="unbound-icon-wrapper">
+              <i class="fa-solid fa-heart-circle-bolt" style="color:var(--neon-rose);"></i>
+            </div>
+            <h3>自律情侣空间</h3>
+            <p>输入伴侣的同步码，将你们的自律挑战紧密相连。绑定后，你们将拥有专属的情侣打卡墙、在一起时间纪念，以及浪漫的私密聊天室！</p>
+            <div class="bind-couple-form">
+              <input type="text" id="bind-partner-token-input" placeholder="输入另一半的的同步码 (SYNC-XXXXXX)" maxlength="15">
+              <button class="btn btn-primary" id="btn-bind-partner-submit">
+                <i class="fa-solid fa-heart-circle-plus"></i> 绑定情侣关系
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. 已绑定情侣状态 -->
+          <div class="couple-bound-layout" id="couple-bound-view" style="display:none;">
+            <!-- 情侣心型誓言卡 -->
+            <div class="couple-anniversary-card glass">
+              <div class="couple-washi-tape-decor"></div>
+              <div class="heart-pulse-badge">💖</div>
+              <h2 id="couple-anniversary-days">我们已经携手坚持了 0 天</h2>
+              <p class="couple-anniversary-sub">每一天的微小改变，都是我们走向更好未来的誓言 ✨</p>
+            </div>
+
+            <!-- 情侣并肩打卡面板 -->
+            <div class="couple-versus-panel">
+              <!-- 我的卡片 -->
+              <div class="couple-member-card glass my-couple-card">
+                <div class="member-role-tag">我</div>
+                <div class="member-avatar" id="couple-my-avatar">🐮</div>
+                <h3 class="member-name" id="couple-my-name">自律冒险者</h3>
+                <div class="member-online-status">
+                  <span class="online-status-dot online"></span>
+                  <span class="online-status-text">在线</span>
+                </div>
+                <div class="member-status-line">
+                  <span>今日打卡进度:</span>
+                  <div class="cozy-progress-bar">
+                    <div class="cozy-progress-fill" id="couple-my-progress-fill" style="width: 0%;"></div>
+                  </div>
+                  <strong class="member-progress-text" id="couple-my-progress-text">0 / 0</strong>
+                </div>
+              </div>
+
+              <!-- 连线效果 -->
+              <div class="couple-bridge-decor">
+                <div class="bridge-line"></div>
+                <div class="bridge-heart"><i class="fa-solid fa-heart"></i></div>
+              </div>
+
+              <!-- 伴侣卡片 -->
+              <div class="couple-member-card glass partner-couple-card">
+                <div class="member-role-tag">我的另一半</div>
+                <div class="member-avatar" id="couple-partner-avatar">🐶</div>
+                <h3 class="member-name" id="couple-partner-name">等待获取中...</h3>
+                <div class="member-online-status" id="couple-partner-status-container">
+                  <span class="online-status-dot offline" id="couple-partner-online-dot"></span>
+                  <span class="online-status-text" id="couple-partner-online-text">正在拉取...</span>
+                </div>
+                <div class="member-status-line">
+                  <span>今日打卡进度:</span>
+                  <div class="cozy-progress-bar">
+                    <div class="cozy-progress-fill" id="couple-partner-progress-fill" style="width: 0%;"></div>
+                  </div>
+                  <strong class="member-progress-text" id="couple-partner-progress-text">0 / 0</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- 情侣互动动作区 -->
+            <div class="couple-actions-panel glass">
+              <button class="btn btn-primary" id="btn-open-couple-chat">
+                <i class="fa-solid fa-comments"></i> 开启情侣私密聊天室
+              </button>
+              <button class="btn btn-danger-outline" id="btn-unbind-partner" style="font-size:12px;padding:8px 12px;border: 1px solid rgba(239, 68, 68, 0.4);">
+                <i class="fa-solid fa-heart-crack"></i> 解除绑定关系
+              </button>
+            </div>
+
+            <!-- [NEW] Ta的自律手账日记 (从云端动态拉取伴侣的日记记录) -->
+            <div class="partner-diaries-section glass" style="margin-top: 20px; padding: 20px; border-radius: 16px;">
+              <h3 style="font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-heart-pulse" style="color: var(--neon-rose); animation: heartPulse 2.5s infinite;"></i>
+                <span id="partner-diary-title-label">Ta 的自律秘密日记</span>
+              </h3>
+              <div class="partner-diaries-grid" id="partner-diaries-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; min-height: 80px;">
+                <div class="empty-social-state" style="grid-column: 1/-1; padding: 20px;">
+                  <i class="fa-solid fa-book-bookmark" style="font-size: 24px; opacity: 0.3; color: var(--neon-rose);"></i>
+                  <p style="font-size: 12px; color: var(--text-dim);">另一半还没有写过日记，或者云端尚未完成同步 ✨</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. 添加/编辑习惯模态弹窗 -->
+  <dialog class="modal glass" id="habit-form-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">添加新习惯</h3>
+        <button class="close-btn" id="btn-close-dialog">&times;</button>
+      </div>
+      <form id="habit-form" method="dialog">
+        <div class="form-group">
+          <label for="habit-name-input">习惯名称 <span class="required">*</span></label>
+          <input type="text" id="habit-name-input" placeholder="例如：晨跑 3公里" required maxlength="25">
+        </div>
+
+        <div class="form-group">
+          <label>习惯分类 <span class="required">*</span></label>
+          <div class="category-selector">
+            <label class="category-radio health">
+              <input type="radio" name="habit-category" value="health" checked>
+              <span class="radio-card">
+                <i class="fa-solid fa-heart"></i>
+                <small>健康</small>
+              </span>
+            </label>
+            <label class="category-radio learning">
+              <input type="radio" name="habit-category" value="learning">
+              <span class="radio-card">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <small>学习</small>
+              </span>
+            </label>
+            <label class="category-radio work">
+              <input type="radio" name="habit-category" value="work">
+              <span class="radio-card">
+                <i class="fa-solid fa-briefcase"></i>
+                <small>工作</small>
+              </span>
+            </label>
+            <label class="category-radio mindset">
+              <input type="radio" name="habit-category" value="mindset">
+              <span class="radio-card">
+                <i class="fa-solid fa-brain"></i>
+                <small>心智</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>图标装饰 (Emoji)</label>
+          <div class="emoji-grid" id="emoji-grid-selector"></div>
+        </div>
+
+        <div class="form-group inline-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="habit-reminder-enable">
+            <label for="habit-reminder-enable" class="checkbox-label">开启定时提醒</label>
+          </div>
+          <div class="time-input-wrapper disabled" id="time-input-wrapper">
+            <i class="fa-regular fa-clock"></i>
+            <input type="time" id="habit-reminder-time" value="08:00" disabled>
+          </div>
+        </div>
+
+        <input type="hidden" id="edit-habit-id-value" value="">
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-dialog">取消</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-dialog">保存习惯</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 4. [NEW] 系统设置弹窗 (同步 + 背景自定义 + 原生备份) -->
+  <dialog class="modal glass" id="settings-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-gear"></i> 系统设置</h3>
+        <button class="close-btn" id="btn-close-settings-dialog">&times;</button>
+      </div>
+
+      <!-- 0. UI 主题风格切换 -->
+      <div class="settings-section">
+        <h4><i class="fa-solid fa-palette"></i> UI 主题风格</h4>
+        <p class="section-desc">切换界面视觉风格，打造你喜欢的自律氛围。</p>
+        <div class="theme-switcher-row" id="theme-switcher-row">
+          <label class="theme-option" data-theme="default">
+            <input type="radio" name="ui-theme" value="default" checked>
+            <div class="theme-preview theme-preview-default">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <span class="theme-name">霓虹科技</span>
+          </label>
+          <label class="theme-option" data-theme="stardew">
+            <input type="radio" name="ui-theme" value="stardew">
+            <div class="theme-preview theme-preview-stardew">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <span class="theme-name">🌾 星露谷</span>
+          </label>
+          <label class="theme-option" data-theme="spongebob">
+            <input type="radio" name="ui-theme" value="spongebob">
+            <div class="theme-preview theme-preview-spongebob">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <span class="theme-name">🧽 海绵宝宝</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- A. 云端实时同步 (同步 Token 引擎) -->
+      <div class="settings-section">
+        <h4><i class="fa-solid fa-cloud-arrow-up"></i> 云端数据实时同步</h4>
+        <p class="section-desc">生成唯一的云同步码，在手机端或电脑端输入相同的同步码即可实现双端数据互通。</p>
+        
+        <div class="sync-status-card glass">
+          <div class="sync-row">
+            <label>当前同步码：</label>
+            <span class="sync-code-display" id="sync-code-text">未激活同步</span>
+          </div>
+          <div class="sync-actions-row">
+            <button class="btn btn-primary btn-sm" id="btn-generate-sync">生成随机同步码</button>
+          </div>
+        </div>
+
+        <div class="form-group margin-top-sm">
+          <label for="sync-code-input">绑定已有同步码：</label>
+          <div class="input-action-group">
+            <input type="text" id="sync-code-input" placeholder="输入 SYNC-XXXXXX 绑定同步">
+            <button class="btn btn-primary" id="btn-bind-sync">绑定并拉取</button>
+          </div>
+        </div>
+
+        <div class="sync-toggle-row">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="sync-auto-toggle" checked>
+            <span class="checkbox-label">自动保存并上传云端</span>
+          </label>
+          <button class="btn btn-secondary btn-sm" id="btn-manual-sync"><i class="fa-solid fa-rotate"></i> 立即同步</button>
+        </div>
+      </div>
+
+      <!-- B. 自定义全局背景图片 -->
+      <div class="settings-section">
+        <h4><i class="fa-solid fa-image"></i> 自定义软件背景图片</h4>
+        <p class="section-desc">上传本地图片库中的图片作为软件底图，自动加上深色透明偏光防止文字反光卡顿。</p>
+        
+        <div class="bg-settings-actions">
+          <label class="btn btn-primary" for="bg-upload-input" id="lbl-bg-upload">
+            <i class="fa-solid fa-upload"></i> 选择本地图片上传
+          </label>
+          <input type="file" id="bg-upload-input" accept="image/*" style="display:none">
+          <button class="btn btn-secondary" id="btn-reset-bg"><i class="fa-solid fa-trash-can"></i> 恢复默认背景</button>
+        </div>
+
+        <!-- [NEW] 动态控制卡片颜色透过率 (透明度) 滑动条 -->
+        <div class="form-group margin-top-sm" style="margin-top: 14px;">
+          <label for="bg-transmittance-slider" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>卡片背景图片透过率 (透明度)：</span>
+            <span id="transmittance-val-display" style="font-family: var(--font-family-title); font-weight: 800; color: var(--neon-cyan);">58%</span>
+          </label>
+          <input type="range" id="bg-transmittance-slider" min="5" max="95" value="58" style="cursor: pointer; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); accent-color: var(--neon-cyan);">
+        </div>
+      </div>
+
+      <!-- C. 独立备份导出 (桌面版专享) -->
+      <div class="settings-section desktop-only-section" id="desktop-backup-section">
+        <h4><i class="fa-solid fa-file-shield"></i> 本地数据物理备份</h4>
+        <div class="backup-actions">
+          <button class="btn btn-secondary" id="btn-export-db"><i class="fa-solid fa-file-export"></i> 导出备份</button>
+          <button class="btn btn-secondary" id="btn-import-db"><i class="fa-solid fa-file-import"></i> 导入合并</button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btn-save-settings">关闭并应用</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 6. [NEW] 自律成就总结报告全屏弹窗 (Option A) -->
+  <dialog class="modal glass report-modal" id="report-dialog">
+    <div class="modal-content report-card">
+      <div class="report-header">
+        <div class="report-badge-medal">
+          <i class="fa-solid fa-award"></i>
+        </div>
+        <h3>自律时光成就报告</h3>
+        <span class="report-subtitle">HABIT TRACKER ACHIEVEMENT REPORT</span>
+        <button class="close-btn" id="btn-close-report-dialog">&times;</button>
+      </div>
+      
+      <div class="report-body">
+        <!-- 核心段位称号 -->
+        <div class="report-rank-section">
+          <small>授予尊贵自律称号</small>
+          <h2 id="report-rank-title">璀璨自律先锋</h2>
+        </div>
+        
+        <!-- 统计核心卡片 -->
+        <div class="report-stats-grid">
+          <div class="report-stat-box">
+            <span class="value" id="report-stat-days">0 天</span>
+            <span class="label">累计达标天数</span>
+          </div>
+          <div class="report-stat-box">
+            <span class="value" id="report-stat-streak">0 天</span>
+            <span class="label">最高连续打卡</span>
+          </div>
+          <div class="report-stat-box">
+            <span class="value" id="report-stat-rate">0%</span>
+            <span class="label">100天自律达标率</span>
+          </div>
+        </div>
+
+        <!-- 自律偏好 -->
+        <div class="report-preference-card">
+          <div class="pref-icon" id="report-pref-icon-container"><i class="fa-solid fa-brain"></i></div>
+          <div class="pref-info">
+            <span class="label">自律焦点突破偏好</span>
+            <h4 id="report-preference-name">偏爱心智 (Mindset)</h4>
+            <p id="report-preference-desc">在心智类习惯中您的执行力最为坚韧！</p>
+          </div>
+        </div>
+
+        <!-- AI 教练暖心评语 -->
+        <div class="report-coach-section">
+          <h4><i class="fa-solid fa-seedling"></i> AI 自律教练深度评语</h4>
+          <div class="report-coach-paper">
+            <p id="report-coach-essay">
+              正在汇聚您过去的微光，提炼教练寄语...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions report-actions">
+        <button class="btn btn-primary" id="btn-share-report"><i class="fa-solid fa-share-nodes"></i> 一键复制报告分享</button>
+        <button class="btn btn-secondary" id="btn-close-report-action">关闭报告</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 7. [NEW] 日记编写弹窗 -->
+  <dialog class="modal glass diary-modal" id="diary-dialog">
+    <div class="modal-content diary-modal-content diary-paper-sheet">
+      <!-- 活页本线圈效果 -->
+      <div class="notebook-spiral-header">
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+      </div>
+      
+      <!-- 纸质胶带装饰 -->
+      <div class="washi-tape left-tape"></div>
+      <div class="washi-tape right-tape"></div>
+      
+      <!-- 可爱小牛贴纸 -->
+      <img src="assets/cow_happy.png" class="diary-paper-sticker" alt="cute cow">
+      
+      <!-- 可爱手绘装饰物 -->
+      <div class="diary-doodle sprout-doodle" title="自律成长 🌱">🌱</div>
+      <div class="diary-doodle star-doodle" title="闪闪发光 ✨">✨</div>
+
+      <div class="modal-header">
+        <div class="diary-modal-header-left">
+          <i class="fa-solid fa-feather-pointed diary-quill-icon"></i>
+          <h3 id="diary-modal-title">今日日记</h3>
+        </div>
+        <button class="close-btn" id="btn-close-diary-dialog">&times;</button>
+      </div>
+
+      <!-- 日期与情绪选择 -->
+      <div class="diary-meta-row">
+        <div class="diary-date-display" id="diary-editor-date">2024年01月01日 · 星期一</div>
+        <div class="diary-mood-picker">
+          <span class="diary-mood-label-small">今日心情：</span>
+          <div class="diary-mood-options" id="diary-mood-options">
+            <label class="mood-opt" title="开心">
+              <input type="radio" name="diary-mood" value="😄" checked>
+              <span class="mood-emoji">😄</span>
+            </label>
+            <label class="mood-opt" title="平静">
+              <input type="radio" name="diary-mood" value="😊">
+              <span class="mood-emoji">😊</span>
+            </label>
+            <label class="mood-opt" title="一般">
+              <input type="radio" name="diary-mood" value="😐">
+              <span class="mood-emoji">😐</span>
+            </label>
+            <label class="mood-opt" title="疲惫">
+              <input type="radio" name="diary-mood" value="😴">
+              <span class="mood-emoji">😴</span>
+            </label>
+            <label class="mood-opt" title="难过">
+              <input type="radio" name="diary-mood" value="😢">
+              <span class="mood-emoji">😢</span>
+            </label>
+            <label class="mood-opt" title="愤怒">
+              <input type="radio" name="diary-mood" value="😤">
+              <span class="mood-emoji">😤</span>
+            </label>
+            <label class="mood-opt" title="兴奋">
+              <input type="radio" name="diary-mood" value="🤩">
+              <span class="mood-emoji">🤩</span>
+            </label>
+            <label class="mood-opt" title="感恩">
+              <input type="radio" name="diary-mood" value="🥹">
+              <span class="mood-emoji">🥹</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日记标题 -->
+      <div class="form-group">
+        <input type="text" id="diary-title-input" class="diary-title-input" placeholder="给今天起个标题（可选）" maxlength="40">
+      </div>
+
+      <!-- 正文编辑区 -->
+      <div class="diary-editor-wrap">
+        <textarea id="diary-content-input" class="diary-content-textarea" placeholder="写下今天的感受、收获、或任何想说的话...&#10;&#10;自律是一粒种子，每天的记录都是阳光与雨水。🌱" maxlength="2000"></textarea>
+        <div class="diary-char-counter"><span id="diary-char-count">0</span> / 2000</div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="form-actions diary-actions">
+        <button class="btn btn-danger-outline" id="btn-delete-diary" style="display:none;">
+          <i class="fa-solid fa-trash"></i> 删除
+        </button>
+        <div style="display:flex;gap:10px;margin-left:auto;">
+          <button class="btn btn-secondary" id="btn-cancel-diary">取消</button>
+          <button class="btn btn-primary" id="btn-save-diary">
+            <i class="fa-solid fa-floppy-disk"></i> 保存日记
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- [NEW] 情侣专属日记阅读弹窗 (只读，用于读取另一半的自律日志) -->
+  <dialog class="modal glass diary-modal" id="partner-diary-dialog">
+    <div class="modal-content diary-modal-content diary-paper-sheet">
+      <!-- 活页本线圈效果 -->
+      <div class="notebook-spiral-header">
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+        <div class="notebook-spiral-ring"></div>
+      </div>
+      
+      <!-- 纸质胶带装饰 -->
+      <div class="washi-tape left-tape" style="background: repeating-linear-gradient(45deg, #fca5a5, #fca5a5 8px, #ffffff 8px, #ffffff 12px) !important;"></div>
+      <div class="washi-tape right-tape" style="background: repeating-linear-gradient(-45deg, #fcd34d, #fcd34d 8px, #ffffff 8px, #ffffff 12px) !important;"></div>
+      
+      <!-- 可爱小牛贴纸 -->
+      <img src="assets/cow_happy.png" class="diary-paper-sticker" alt="cute cow">
+      
+      <!-- 可爱手绘装饰物 -->
+      <div class="diary-doodle sprout-doodle" title="爱心成长 💖" style="color: var(--neon-rose) !important;">💖</div>
+      <div class="diary-doodle star-doodle" title="闪闪发光 ✨">✨</div>
+
+      <div class="modal-header">
+        <div class="diary-modal-header-left">
+          <i class="fa-solid fa-heart diary-quill-icon" style="color: var(--neon-rose);"></i>
+          <h3 id="partner-diary-modal-title">Ta 的自律日记</h3>
+        </div>
+        <button class="close-btn" id="btn-close-partner-diary-dialog">&times;</button>
+      </div>
+
+      <!-- 日期与情绪 -->
+      <div class="diary-meta-row" style="border-left-color: var(--neon-rose) !important; background: rgba(254, 242, 242, 0.6) !important; border-radius: 12px;">
+        <div class="diary-date-display" id="partner-diary-view-date">2026年05月24日</div>
+        <div style="font-size: 14px; font-weight: bold; color: var(--text-main); margin-left: auto; display: flex; align-items: center; gap: 4px;">
+          <span>今日心情：</span>
+          <span id="partner-diary-view-mood" style="font-size: 20px;">😊</span>
+        </div>
+      </div>
+
+      <!-- 日记标题 -->
+      <div class="form-group" style="border-bottom: 2px dashed rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 12px;">
+        <h2 id="partner-diary-view-title" style="font-size: 18px; font-weight: bold; color: var(--text-main); margin: 0; padding: 0 4px;">无标题</h2>
+      </div>
+
+      <!-- 正文展示区 (高仿真横线信纸效果) -->
+      <div class="diary-editor-wrap" style="position: relative;">
+        <div id="partner-diary-view-content" class="diary-content-textarea" style="width: 100%; min-height: 250px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-family-body) !important; border: none !important; box-shadow: none !important; background: transparent !important; padding: 10px 4px !important; pointer-events: auto !important; cursor: text !important;">写下今天的感受...</div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="form-actions diary-actions" style="margin-top: 16px;">
+        <div style="display:flex;gap:10px;margin-left:auto;">
+          <button class="btn btn-secondary" id="btn-close-partner-diary" style="min-width: 100px;">关闭日记</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 8. [NEW] 社交聊天弹窗 -->
+  <dialog class="modal glass chat-modal" id="chat-dialog">
+    <div class="modal-content chat-modal-content">
+      <div class="modal-header">
+        <div class="chat-modal-header-left">
+          <span class="chat-friend-avatar" id="chat-window-avatar">🐶</span>
+          <div>
+            <h3 id="chat-window-title">与 好友 聊天中</h3>
+            <small class="chat-status-text" id="chat-window-status">实时聊天室 · 每 4秒 自动刷新</small>
+          </div>
+        </div>
+        <button class="close-btn" id="btn-close-chat-dialog">&times;</button>
+      </div>
+
+      <!-- 聊天气泡滚动区 -->
+      <div class="chat-messages-scroll" id="chat-messages-container">
+        <!-- 气泡动态载入 -->
+        <div class="chat-empty-state">
+          <i class="fa-solid fa-comments" style="font-size:32px;opacity:0.3;margin-bottom:10px;display:block;"></i>
+          说点什么吧，给对方留下一句自律鼓励！💬
+        </div>
+      </div>
+
+      <!-- 输入栏 -->
+      <form id="chat-input-form" class="chat-input-row" onsubmit="return false;">
+        <input type="text" id="chat-message-input" placeholder="输入鼓励的话，按回车发送..." maxlength="150" autocomplete="off">
+        <button class="btn btn-primary" id="btn-send-chat-message">
+          <i class="fa-solid fa-paper-plane"></i> 发送
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 5. JavaScript Code -->
+  <script src="renderer.js"></script>
+</body>
+</html>

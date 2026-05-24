@@ -1,0 +1,20 @@
+{
+  "name": "zi-lu-habit-tracker",
+  "version": "1.0.0",
+  "description": "High-end self-discipline habit tracker desktop application.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "mobile": "node mobile-server.js"
+  },
+  "keywords": [
+    "habit",
+    "tracker",
+    "electron"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^42.2.0"
+  }
+}
