@@ -2000,20 +2000,25 @@ function switchPage(page) {
     btn.classList.toggle('active', btn.dataset.page === page);
   });
 
+  const statsCard = document.getElementById('mobile-stats-card');
+
   if (page === 'diary') {
     homeSections.forEach(el => el.style.display = 'none');
     if (diaryPage) { diaryPage.style.display = 'flex'; }
     if (socialPage) { socialPage.style.display = 'none'; }
+    if (statsCard) { statsCard.style.display = 'none'; }
     renderDiaryPage();
   } else if (page === 'social') {
     homeSections.forEach(el => el.style.display = 'none');
     if (diaryPage) { diaryPage.style.display = 'none'; }
     if (socialPage) { socialPage.style.display = 'flex'; }
+    if (statsCard) { statsCard.style.display = 'none'; }
     renderSocialPage();
   } else {
     homeSections.forEach(el => el.style.display = '');
     if (diaryPage) { diaryPage.style.display = 'none'; }
     if (socialPage) { socialPage.style.display = 'none'; }
+    if (statsCard) { statsCard.style.display = ''; }
   }
 }
 
@@ -2220,7 +2225,8 @@ function initDiaryEventListeners() {
   document.getElementById('nav-btn-diary')?.addEventListener('click', () => switchPage('diary'));
   document.getElementById('nav-btn-social')?.addEventListener('click', () => switchPage('social'));
 
-  // 移动端日记按钮
+  // 移动端导航按钮
+  document.getElementById('btn-nav-home-mobile')?.addEventListener('click', () => switchPage('home'));
   document.getElementById('btn-nav-diary-mobile')?.addEventListener('click', () => switchPage('diary'));
   document.getElementById('btn-nav-social-mobile')?.addEventListener('click', () => switchPage('social'));
 
