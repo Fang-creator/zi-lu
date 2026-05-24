@@ -79,45 +79,89 @@ async function _deriveKey(token) {
 }
 
 async function encryptData(token, plaintext) {
-  if (!hasCrypto() || !token) return plaintext;
-  try {
-    const key = await _deriveKey(token);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      new TextEncoder().encode(plaintext)
-    );
-    const combined = new Uint8Array(12 + ct.byteLength);
-    combined.set(iv);
-    combined.set(new Uint8Array(ct), 12);
-    return CRYPTO_PREFIX + _arrayBufferToBase64(combined);
-  } catch (e) {
-    console.warn('加密失败，回退明文存储:', e);
-    return plaintext;
+  if (!token) return plaintext;
+
+  // 优先使用 CryptoJS 进行高兼容性加密，即使在非安全局域网 HTTP 移动端也能正常处理
+  if (typeof CryptoJS !== 'undefined') {
+    try {
+      const encrypted = CryptoJS.AES.encrypt(plaintext, token).toString();
+      return 'ENC_JS:' + encrypted;
+    } catch (e) {
+      console.warn('CryptoJS 加密失败，尝试 WebCrypto:', e);
+    }
   }
+
+  // Fallback to WebCrypto if CryptoJS is missing
+  if (hasCrypto()) {
+    try {
+      const key = await _deriveKey(token);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        new TextEncoder().encode(plaintext)
+      );
+      const combined = new Uint8Array(12 + ct.byteLength);
+      combined.set(iv);
+      combined.set(new Uint8Array(ct), 12);
+      return CRYPTO_PREFIX + _arrayBufferToBase64(combined);
+    } catch (e) {
+      console.warn('WebCrypto 加密失败，回退明文存储:', e);
+    }
+  }
+
+  return plaintext;
 }
 
 async function decryptData(token, payload) {
   if (typeof payload !== 'string') return payload;
-  if (!payload.startsWith(CRYPTO_PREFIX)) return payload; // 兼容旧明文数据
-  const ciphertextB64 = payload.substring(CRYPTO_PREFIX.length);
-  if (!hasCrypto() || !token) return payload;
-  try {
-    const key = await _deriveKey(token);
-    const buffer = _base64ToArrayBuffer(ciphertextB64);
-    const iv = buffer.slice(0, 12);
-    const ct = buffer.slice(12);
-    const pt = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: new Uint8Array(iv) },
-      key,
-      ct
-    );
-    return new TextDecoder().decode(pt);
-  } catch (e) {
-    console.warn('解密失败，可能是旧版明文数据:', e);
-    return payload; // 解析失败则原样返回（兼容旧版明文）
+  if (!token) return payload;
+
+  // 1. 处理 CryptoJS 全平台兼容的 ENC_JS: 格式
+  if (payload.startsWith('ENC_JS:')) {
+    if (typeof CryptoJS !== 'undefined') {
+      try {
+        const ciphertext = payload.substring('ENC_JS:'.length);
+        const bytes = CryptoJS.AES.decrypt(ciphertext, token);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        if (decrypted) return decrypted;
+      } catch (e) {
+        console.warn('CryptoJS 解密失败:', e);
+      }
+    }
+    return payload;
   }
+
+  // 2. 处理原有的 WebCrypto ENC: 格式
+  if (payload.startsWith(CRYPTO_PREFIX)) {
+    const ciphertextB64 = payload.substring(CRYPTO_PREFIX.length);
+    
+    // 如果支持 WebCrypto 优先使用 WebCrypto 解密
+    if (hasCrypto()) {
+      try {
+        const key = await _deriveKey(token);
+        const buffer = _base64ToArrayBuffer(ciphertextB64);
+        const iv = buffer.slice(0, 12);
+        const ct = buffer.slice(12);
+        const pt = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: new Uint8Array(iv) },
+          key,
+          ct
+        );
+        return new TextDecoder().decode(pt);
+      } catch (e) {
+        console.warn('WebCrypto 解密失败，尝试 CryptoJS:', e);
+      }
+    }
+
+    // 如果处于非安全环境且无法解密 WebCrypto 格式
+    if (!hasCrypto()) {
+      console.warn('处于非安全环境且该数据为旧版 GCM 格式，无法解密。请在主环境或 HTTPS 访问以自动升级格式！');
+    }
+    return payload;
+  }
+
+  return payload; // 兼容旧明文数据
 }
 
 // 2. DOM 元素缓存
@@ -3457,60 +3501,86 @@ async function uploadAuthToCloud(username, password, passwordHash) {
   }
 }
 
-// 从云端拉取认证信息并用密码解密，返回 { username, passwordHash, syncToken } 或 null
-async function fetchAuthFromCloud(username, password) {
-  try {
-    const key = await _authCloudKey(username);
-    const res = await fetch(`${KVDB_ENDPOINT}${key}`);
-    if (!res.ok) return null;
-    const raw = await res.text();
-    let data;
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed.v === 2 && parsed.d) {
-        const decrypted = await decryptData(password, parsed.d);
-        // 如果解密后还是加密前缀说明解密失败（密码错误）
-        if (typeof decrypted === 'string' && decrypted.startsWith(CRYPTO_PREFIX)) {
-          console.warn('云端认证数据解密失败（密码可能错误）');
-          return null;
-        }
-        data = JSON.parse(decrypted);
-      } else {
-        data = parsed; // 兼容旧明文格式
-      }
-    } catch {
-      return null;
-    }
-    // 用户名比较忽略大小写，兼容历史数据
-    if (data && data.passwordHash &&
-        data.username && data.username.toLowerCase() === username.toLowerCase()) {
-      return data;
-    }
-    return null;
-  } catch (e) {
-    console.warn('从云端获取认证信息失败:', e);
-    return null;
+// 获取所有可能的大小写变体（用于兼容历史数据查询）
+function getUsernameCasingVariations(username) {
+  const raw = username.trim();
+  const variations = new Set();
+  variations.add(raw); // 原始输入
+  variations.add(raw.toLowerCase()); // 全小写
+  variations.add(raw.toUpperCase()); // 全大写
+  
+  if (raw.length > 0) {
+    variations.add(raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase()); // 首字母大写
   }
+  return Array.from(variations);
 }
 
-// 检查云端是否已有该用户名（大小写兼容性检查）
-async function checkCloudUsernameExists(username) {
-  try {
-    const key = await _authCloudKey(username);
-    const res = await fetch(`${KVDB_ENDPOINT}${key}`);
-    if (res.ok) return true;
-
-    // 如果有大写，则同步检查全小写版本的 Key 以防产生大小写重复冲突账号
-    const usernameLower = username.toLowerCase();
-    if (usernameLower !== username) {
-      const keyLower = await _authCloudKey(usernameLower);
-      const resLower = await fetch(`${KVDB_ENDPOINT}${keyLower}`);
-      return resLower.ok;
+// 从云端拉取认证信息并用密码解密，返回 { username, passwordHash, syncToken } 或 null
+async function fetchAuthFromCloud(username, password) {
+  const variations = getUsernameCasingVariations(username);
+  
+  for (const variant of variations) {
+    try {
+      const key = await _authCloudKey(variant);
+      const res = await fetch(`${KVDB_ENDPOINT}${key}`);
+      if (!res.ok) continue; // 尝试下一个变体
+      
+      const raw = await res.text();
+      let data;
+      let isUpgradeNeeded = false;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.v === 2 && parsed.d) {
+          const decrypted = await decryptData(password, parsed.d);
+          // 如果解密后还是加密前缀说明解密失败（密码错误）
+          if (typeof decrypted === 'string' && decrypted.startsWith(CRYPTO_PREFIX)) {
+            console.warn('云端认证数据解密失败（密码可能错误）');
+            continue;
+          }
+          data = JSON.parse(decrypted);
+          // 【自动升级】如果读取到的是旧版的 ENC: 格式，我们自动将其重新加密升级为全设备兼容的 ENC_JS: 格式并上传
+          if (parsed.d.startsWith(CRYPTO_PREFIX)) {
+            isUpgradeNeeded = true;
+          }
+        } else {
+          data = parsed; // 兼容旧明文格式
+          isUpgradeNeeded = true;
+        }
+      } catch {
+        continue;
+      }
+      
+      if (data && data.passwordHash &&
+          data.username && data.username.toLowerCase() === username.toLowerCase()) {
+        
+        // 自动升级云端凭证格式为全端支持的高兼容格式
+        if (isUpgradeNeeded) {
+          console.log('检测到旧版或不兼容的加密格式，正在为您自动升级云端安全凭证为全端兼容格式... ✨');
+          uploadAuthToCloud(data.username, password, data.passwordHash).catch(err => {
+            console.warn('自动升级云端凭证失败:', err);
+          });
+        }
+        
+        return data; // 成功找到并解密！
+      }
+    } catch (e) {
+      console.warn(`从云端获取认证信息变体(${variant})失败:`, e);
     }
-    return false;
-  } catch {
-    return false;
   }
+  return null;
+}
+
+// 检查云端是否已有该用户名（全大小写兼容性变体检查）
+async function checkCloudUsernameExists(username) {
+  const variations = getUsernameCasingVariations(username);
+  for (const variant of variations) {
+    try {
+      const key = await _authCloudKey(variant);
+      const res = await fetch(`${KVDB_ENDPOINT}${key}`);
+      if (res.ok) return true;
+    } catch {}
+  }
+  return false;
 }
 
 function setupAuth(mode) {
