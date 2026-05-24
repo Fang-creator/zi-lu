@@ -822,6 +822,15 @@ function setupEventListeners() {
     });
   }
 
+  const btnLogoutMobile = document.getElementById('btn-logout-mobile');
+  if (btnLogoutMobile) {
+    btnLogoutMobile.addEventListener('click', () => {
+      if (confirm('确定要退出登录吗？\n\n退出后需要重新输入账号密码。')) {
+        handleLogout();
+      }
+    });
+  }
+
   // E. [NEW] 绑定卡片颜色透过率滑动条事件
   if (DOM.bgTransmittanceSlider) {
     DOM.bgTransmittanceSlider.addEventListener('input', (e) => {
