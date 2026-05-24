@@ -3700,7 +3700,9 @@ function setupAuth(mode) {
         if (!authData) {
           errorEl.textContent = '账号不存在，请先注册';
           errorEl.style.display = 'block';
-          submitBtn.textContent = '登录';
+          // 自动切换到注册模式方便用户
+          switchTab('register');
+          submitBtn.textContent = '注册';
           submitBtn.disabled = false;
           return;
         }
@@ -3714,13 +3716,22 @@ function setupAuth(mode) {
           return;
         }
 
-        // 保存登录会话（使用存储的实际注册名字）
+        // 保存登录会话
         const sessionToken = await generateSessionToken(authData.username, authData.passwordHash);
         localStorage.setItem('zi_lu_session', sessionToken);
 
         // 从云端登录时恢复同步码，使两端数据互通
         if (cloudSyncToken && !state.syncToken) {
           state.syncToken = cloudSyncToken;
+        }
+
+        // 如果是本地登录，补上传认证信息到云端（修复之前注册时云端同步失败的情况）
+        if (!cloudSyncToken) {
+          try {
+            await uploadAuthToCloud(authData.username, password, authData.passwordHash);
+          } catch (_) {
+            // 静默重试，不影响登录
+          }
         }
 
         dialog.close();
