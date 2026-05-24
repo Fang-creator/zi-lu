@@ -913,6 +913,7 @@ body {
 .auth-form .form-group { margin-bottom: 14px; }
 .auth-error { color: var(--neon-rose); font-size: 12px; margin: -6px 0 10px; text-align: center; }
 .auth-submit-btn { width: 100%; padding: 12px; font-size: 15px; }
+.auth-hint { color: var(--text-dim); font-size: 11px; text-align: center; margin-top: 10px; display: none; }
 .auth-avatar-section { margin-bottom: 14px; }
 .auth-avatar-section label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px; }
 .auth-avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }

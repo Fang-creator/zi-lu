@@ -3535,10 +3535,15 @@ function setupAuth(mode) {
       tabLogin.classList.add('active');
       tabRegister.classList.remove('active');
       submitBtn.textContent = '登录';
+      // 登录模式下，如果是新设备（无本地账户），显示提示
+      const hint = document.getElementById('auth-hint');
+      if (hint && !localStorage.getItem('zi_lu_auth')) hint.style.display = 'block';
     } else {
       tabRegister.classList.add('active');
       tabLogin.classList.remove('active');
       submitBtn.textContent = '注册';
+      const hint = document.getElementById('auth-hint');
+      if (hint) hint.style.display = 'none';
     }
     errorEl.style.display = 'none';
     usernameInput.value = '';
@@ -3694,12 +3699,15 @@ function setupAuth(mode) {
         }
 
         if (!authData) {
-          errorEl.textContent = '账号不存在，请先注册';
+          errorEl.style.color = '#fbbf24';
+          errorEl.textContent = '该账号尚未注册，请在下方注册新账号';
           errorEl.style.display = 'block';
-          // 自动切换到注册模式方便用户
+          // 自动切换到注册模式
           switchTab('register');
           submitBtn.textContent = '注册';
           submitBtn.disabled = false;
+          // 3秒后恢复错误颜色
+          setTimeout(() => { errorEl.style.color = ''; errorEl.style.display = 'none'; }, 3000);
           return;
         }
 
