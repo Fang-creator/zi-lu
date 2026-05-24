@@ -1007,13 +1007,98 @@ body {
 
 /* 手机/窄屏端 (屏幕宽度 <= 768px) */
 @media (max-width: 768px) {
+  /* 手机端侧边栏变为紧凑横向统计条 */
   #sidebar-panel {
-    display: none !important; /* 隐藏电脑侧边栏 */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-glass);
+    background: var(--bg-sidebar);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  /* 手机上隐藏侧边栏中的装饰、导航、按钮（已在顶栏中） */
+  #sidebar-panel > .brand,
+  #sidebar-panel > .sidebar-nav,
+  #sidebar-panel > .sidebar-footer,
+  #sidebar-panel > .add-habit-trigger,
+  #sidebar-panel > .spongebob-theme-decor {
+    display: none !important;
+  }
+  /* 进度环缩小 */
+  #sidebar-panel .progress-card {
+    padding: 8px 12px !important;
+    flex-direction: row !important;
+    gap: 8px;
+    align-items: center;
+  }
+  #sidebar-panel .progress-card h3 {
+    font-size: 11px !important;
+    margin-bottom: 0 !important;
+    white-space: nowrap;
+  }
+  #sidebar-panel .radial-progress {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  #sidebar-panel .radial-progress-container {
+    width: 48px;
+    height: 48px;
+  }
+  #sidebar-panel .progress-text span {
+    font-size: 14px !important;
+  }
+  #sidebar-panel .progress-text small {
+    font-size: 9px !important;
+  }
+  /* 统计面板横向排列 */
+  #sidebar-panel .stats-panel {
+    flex-direction: row !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
+  }
+  #sidebar-panel .stat-item {
+    padding: 6px 10px !important;
+    flex-direction: row !important;
+    gap: 6px;
+    align-items: center;
+    min-width: auto;
+  }
+  #sidebar-panel .stat-item .stat-icon {
+    font-size: 14px !important;
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    box-shadow: none !important;
+  }
+  #sidebar-panel .stat-item .value {
+    font-size: 13px !important;
+  }
+  #sidebar-panel .stat-item .label {
+    font-size: 9px !important;
+  }
+  #sidebar-panel .stat-data {
+    display: flex;
+    flex-direction: row !important;
+    gap: 4px;
+    align-items: baseline;
   }
 
   .mobile-header {
     display: flex !important; /* 显示手机页眉 */
-    padding: 0 4px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px) !important;
+    padding-bottom: 8px !important;
+    height: auto !important;
+    box-sizing: border-box !important;
     background: transparent;
   }
 
