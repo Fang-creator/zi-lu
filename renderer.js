@@ -3290,6 +3290,41 @@ async function verifyPassword(password, storedHash) {
   return await hashPassword(password) === storedHash;
 }
 
+async function _authCloudKey(username) {
+  const enc = new TextEncoder();
+  const hash = await crypto.subtle.digest('SHA-256', enc.encode('AUTH-KEY:' + username));
+  return 'AUTH-' + _ab2hex(hash).substring(0, 16);
+}
+
+async function uploadAuthToCloud(username, passwordHash) {
+  try {
+    const key = await _authCloudKey(username);
+    await fetch(`${KVDB_ENDPOINT}${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, passwordHash })
+    });
+  } catch (e) {
+    console.warn('上传认证信息到云端失败:', e);
+  }
+}
+
+async function fetchAuthFromCloud(username) {
+  try {
+    const key = await _authCloudKey(username);
+    const res = await fetch(`${KVDB_ENDPOINT}${key}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && data.username === username && data.passwordHash) {
+      return data;
+    }
+    return null;
+  } catch (e) {
+    console.warn('从云端获取认证信息失败:', e);
+    return null;
+  }
+}
+
 function setupAuth(mode) {
   const dialog = document.getElementById('auth-dialog');
   if (dialog) {
@@ -3355,7 +3390,11 @@ function setupAuth(mode) {
 
       try {
         const hash = await hashPassword(password);
-        localStorage.setItem('zi_lu_auth', JSON.stringify({ username, passwordHash: hash }));
+        const authData = { username, passwordHash: hash };
+        localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
+
+        // 上传认证信息到云端，其他设备也能登录
+        uploadAuthToCloud(username, hash);
 
         // 新用户空白开始
         initEmptyData();
@@ -3389,22 +3428,32 @@ function setupAuth(mode) {
     } else {
       // 登录
       try {
-        const stored = localStorage.getItem('zi_lu_auth');
-        if (!stored) {
-          errorEl.textContent = '没有账号，请先注册';
-          errorEl.style.display = 'block';
-          return;
-        }
-
-        const authData = JSON.parse(stored);
-        if (authData.username !== username) {
-          errorEl.textContent = '账号不存在，请检查输入';
-          errorEl.style.display = 'block';
-          return;
-        }
-
         submitBtn.textContent = '登录中...';
         submitBtn.disabled = true;
+
+        let authData = null;
+        const stored = localStorage.getItem('zi_lu_auth');
+        if (stored) {
+          authData = JSON.parse(stored);
+          if (authData.username !== username) authData = null;
+        }
+
+        // 本地没有 → 尝试从云端拉取
+        if (!authData) {
+          const cloudAuth = await fetchAuthFromCloud(username);
+          if (cloudAuth) {
+            authData = cloudAuth;
+            localStorage.setItem('zi_lu_auth', JSON.stringify(cloudAuth));
+          }
+        }
+
+        if (!authData) {
+          errorEl.textContent = '账号不存在，请先注册';
+          errorEl.style.display = 'block';
+          submitBtn.textContent = '登录';
+          submitBtn.disabled = false;
+          return;
+        }
 
         const valid = await verifyPassword(password, authData.passwordHash);
         if (!valid) {
