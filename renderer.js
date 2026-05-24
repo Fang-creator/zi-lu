@@ -234,33 +234,29 @@ window.addEventListener('DOMContentLoaded', async () => {
   initEmojiSelectorGrid();
   setupEventListeners();
 
-  // A. 加载底层数据
+  // 检查是否需要登录
+  const hasAuth = localStorage.getItem('zi_lu_auth') !== null;
+  setupAuth(hasAuth ? 'login' : 'register');
+  document.getElementById('auth-dialog').showModal();
+});
+
+// 登录/注册成功后启动应用
+async function startAppAfterAuth() {
   await loadDatabase();
 
-  // A2. 首次使用 → 显示引导弹窗
-  if (!state.isOnboarded) {
-    setupOnboarding();
-    document.getElementById('onboarding-dialog').showModal();
-    return;
-  }
-
-  // B. 如果配置了云同步，则立刻执行一次后台静默数据同步与合并
   if (state.syncToken) {
     DOM.syncCodeText.innerText = state.syncToken;
     DOM.syncCodeInput.value = state.syncToken;
     await performCloudSyncPull();
   }
 
-  // C. 渲染基础界面
   applyCustomBackground();
-  applyCardTransmittance(); // [NEW] 应用卡片透过率设定
-  applyUITheme(state.uiTheme); // [NEW] 应用保存的主题风格
+  applyCardTransmittance();
+  applyUITheme(state.uiTheme);
   refreshUI();
-  
-  // D. 开启定时提醒轮询
   startReminderScheduler();
   startOnlineHeartbeat();
-});
+}
 
 // 4. 数据底层持久化 (支持浏览器 localStorage + Electron 本地文件双模式兼容)
 function isElectronEnv() {
@@ -3225,116 +3221,138 @@ function closePartnerDiaryViewer() {
 }
 
 // ── 新用户引导流程 ──
-function setupOnboarding() {
-  // 预生成同步码
-  const randHex = crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-  const syncCode = 'SYNC-' + randHex;
-  const syncCodeEl = document.getElementById('onboarding-sync-code-text');
-  if (syncCodeEl) syncCodeEl.textContent = syncCode;
+// ── 账号密码认证系统 ──
+const AUTH_SALT = 'ZL-AUTH-SALT-2024';
 
-  // 防止用户绕过引导关闭弹窗
-  const dialog = document.getElementById('onboarding-dialog');
+async function _authDeriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 200000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+}
+
+function _ab2b64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+function _b642ab(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer;
+}
+
+async function hashPassword(password) {
+  const salt = AUTH_SALT + '-' + password.length;
+  const key = await _authDeriveKey(password, salt);
+  const raw = await crypto.subtle.exportKey('raw', key);
+  return _ab2b64(raw);
+}
+
+async function verifyPassword(password, storedHash) {
+  const hash = await hashPassword(password);
+  return hash === storedHash;
+}
+
+function setupAuth(mode) {
+  const dialog = document.getElementById('auth-dialog');
   if (dialog) {
     dialog.addEventListener('cancel', (e) => e.preventDefault());
   }
 
-  let currentStep = 0;
-  const steps = ['welcome', 'profile', 'theme', 'sync'];
+  const tabLogin = document.getElementById('auth-tab-login');
+  const tabRegister = document.getElementById('auth-tab-register');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const errorEl = document.getElementById('auth-error');
+  const usernameInput = document.getElementById('auth-username');
+  const passwordInput = document.getElementById('auth-password');
+  const authForm = document.getElementById('auth-login-form');
 
-  function showStep(stepIndex) {
-    steps.forEach((s, i) => {
-      const el = document.getElementById('onboarding-step-' + s);
-      if (el) el.style.display = i === stepIndex ? 'flex' : 'none';
-    });
-    document.querySelectorAll('.onboard-dot').forEach((dot, i) => {
-      dot.classList.toggle('active', i === stepIndex);
-    });
-    currentStep = stepIndex;
-  }
+  let currentMode = mode;
 
-  function nextStep() {
-    if (currentStep < steps.length - 1) {
-      showStep(currentStep + 1);
+  function switchTab(mode) {
+    currentMode = mode;
+    if (mode === 'login') {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      submitBtn.textContent = '登录';
+    } else {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      submitBtn.textContent = '注册';
     }
+    errorEl.style.display = 'none';
+    usernameInput.value = '';
+    passwordInput.value = '';
   }
 
-  function prevStep() {
-    if (currentStep > 0) {
-      showStep(currentStep - 1);
+  tabLogin?.addEventListener('click', () => switchTab('login'));
+  tabRegister?.addEventListener('click', () => switchTab('register'));
+
+  // 初始模式
+  switchTab(mode);
+
+  authForm?.addEventListener('submit', async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      errorEl.textContent = '请输入账号和密码';
+      errorEl.style.display = 'block';
+      return;
     }
-  }
 
-  // 步骤 1 → 2
-  document.getElementById('btn-onboarding-start')?.addEventListener('click', nextStep);
+    if (currentMode === 'register') {
+      // 注册
+      const existingAuth = localStorage.getItem('zi_lu_auth');
+      if (existingAuth) {
+        const parsed = JSON.parse(existingAuth);
+        if (parsed.username === username) {
+          errorEl.textContent = '该账号已存在，请直接登录';
+          errorEl.style.display = 'block';
+          return;
+        }
+      }
 
-  // 步骤 2 的上下步
-  document.getElementById('btn-onboarding-back-profile')?.addEventListener('click', prevStep);
-  document.getElementById('btn-onboarding-next-profile')?.addEventListener('click', nextStep);
+      const hash = await hashPassword(password);
+      localStorage.setItem('zi_lu_auth', JSON.stringify({ username, passwordHash: hash }));
 
-  // 步骤 3 的上下步
-  document.getElementById('btn-onboarding-back-theme')?.addEventListener('click', prevStep);
-  document.getElementById('btn-onboarding-next-theme')?.addEventListener('click', nextStep);
+      // 新用户空白开始
+      initEmptyData();
+      state.nickname = username;
+      await saveDatabase();
 
-  // 步骤 4 的上下步
-  document.getElementById('btn-onboarding-back-sync')?.addEventListener('click', prevStep);
+      dialog.close();
+      await startAppAfterAuth();
+    } else {
+      // 登录
+      const stored = localStorage.getItem('zi_lu_auth');
+      if (!stored) {
+        errorEl.textContent = '没有账号，请先注册';
+        errorEl.style.display = 'block';
+        return;
+      }
 
-  // 复制同步码
-  document.getElementById('btn-onboarding-copy-sync')?.addEventListener('click', () => {
-    const code = syncCodeEl?.textContent || '';
-    navigator.clipboard?.writeText(code).then(() => {
-      alert('同步码已复制到剪贴板！');
-    }).catch(() => {
-      prompt('请手动复制同步码：', code);
-    });
+      const authData = JSON.parse(stored);
+      if (authData.username !== username) {
+        errorEl.textContent = '账号不存在，请检查输入';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const valid = await verifyPassword(password, authData.passwordHash);
+      if (!valid) {
+        errorEl.textContent = '密码错误，请重试';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      dialog.close();
+      await startAppAfterAuth();
+    }
   });
-
-  // 重新生成同步码
-  document.getElementById('btn-onboarding-regen-sync')?.addEventListener('click', () => {
-    const newRandHex = crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-    const newCode = 'SYNC-' + newRandHex;
-    if (syncCodeEl) syncCodeEl.textContent = newCode;
-  });
-
-  // 完成引导
-  async function finishOnboarding(skipSync) {
-    // 保存昵称
-    const nicknameInput = document.getElementById('onboarding-nickname-input');
-    state.nickname = nicknameInput?.value?.trim() || '自律冒险者';
-
-    // 保存头像
-    const avatarRadio = document.querySelector('input[name="onboarding-avatar"]:checked');
-    state.avatar = avatarRadio?.value || 'cow';
-
-    // 保存主题
-    const themeRadio = document.querySelector('input[name="onboarding-theme"]:checked');
-    state.uiTheme = themeRadio?.value || 'default';
-
-    // 保存同步码
-    if (!skipSync) {
-      state.syncToken = syncCodeEl?.textContent || syncCode;
-    }
-
-    state.isOnboarded = true;
-    await saveDatabase();
-
-    // 关闭弹窗
-    document.getElementById('onboarding-dialog')?.close();
-
-    // 渲染界面
-    if (state.syncToken) {
-      DOM.syncCodeText.innerText = state.syncToken;
-      DOM.syncCodeInput.value = state.syncToken;
-    }
-    applyCustomBackground();
-    applyCardTransmittance();
-    applyUITheme(state.uiTheme);
-    refreshUI();
-    startReminderScheduler();
-    startOnlineHeartbeat();
-  }
-
-  document.getElementById('btn-onboarding-finish')?.addEventListener('click', () => finishOnboarding(false));
-  document.getElementById('btn-onboarding-skip-sync')?.addEventListener('click', () => finishOnboarding(true));
 }
 
 function escapeJS(str) {
