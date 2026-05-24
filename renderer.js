@@ -139,6 +139,15 @@ const DOM = {
   bestStreak: document.getElementById('best-streak'),
   totalCount: document.getElementById('total-count'),
   habitListContainer: document.getElementById('habit-list-container'),
+
+  // 手机端统计卡片 DOM
+  mobileTodayPct: document.getElementById('mobile-today-pct'),
+  mobileTodayFrac: document.getElementById('mobile-today-frac'),
+  mobileProgressFill: document.getElementById('mobile-progress-fill'),
+  mobileStreak: document.getElementById('mobile-streak'),
+  mobileBest: document.getElementById('mobile-best'),
+  mobileTotal: document.getElementById('mobile-total'),
+  mobileTickets: document.getElementById('mobile-tickets'),
   heatmapGridContainer: document.getElementById('heatmap-grid-container'),
   globalBgContainer: document.getElementById('global-bg-container'),
   
@@ -1052,10 +1061,15 @@ function refreshUI() {
   const metrics = calculateStreakMetrics();
   DOM.currentStreak.innerText = `${metrics.current} 天`;
   DOM.bestStreak.innerText = `${metrics.best} 天`;
-  DOM.totalCount.innerText = `${metrics.total} 天`; // 提示：累计达标天数而非打卡总次数，更符合游戏化
+  DOM.totalCount.innerText = `${metrics.total} 天`;
 
   // 渲染今日环形图
   renderRadialProgress(activeHabits);
+
+  // 同步手机统计卡片 (renderRadialProgress 已同步百分比，此处补齐 streak 等)
+  const doneM = (state.checkIns[state.currentDateStr] || []).filter(id => activeHabits.some(h => h.id === id)).length;
+  const pctM = activeHabits.length > 0 ? Math.round((doneM / activeHabits.length) * 100) : 0;
+  syncMobileStats(pctM, `${doneM}/${activeHabits.length}`, metrics.current, metrics.best, metrics.total);
 
   // 渲染折线走势图
   renderTrendChart();
@@ -1184,6 +1198,12 @@ async function handleCheckinToggle(habitId, isChecked) {
   DOM.bestStreak.innerText = `${metrics.best} 天`;
   DOM.totalCount.innerText = `${metrics.total} 天`;
 
+  // 同步手机统计卡片
+  const checkedIds2 = state.checkIns[state.currentDateStr] || [];
+  const done2 = activeHabits.filter(h => checkedIds2.includes(h.id)).length;
+  const pct2 = activeHabits.length > 0 ? Math.round((done2 / activeHabits.length) * 100) : 0;
+  syncMobileStats(pct2, `${done2}/${activeHabits.length}`, metrics.current, metrics.best, metrics.total);
+
   renderTrendChart();
   renderHeatmap();
   renderDotMatrix();
@@ -1207,6 +1227,9 @@ async function check7DayMilestoneReward() {
       // 更新 UI 显示
       if (DOM.ticketCountDisplay) {
         DOM.ticketCountDisplay.innerText = `${state.ticketsCount} 张`;
+      }
+      if (DOM.mobileTickets) {
+        DOM.mobileTickets.innerText = `${state.ticketsCount} 张`;
       }
       
       // 触发华丽庆祝弹窗！
@@ -1267,6 +1290,16 @@ async function handleUseTicketResurrect() {
   alert(`🎉 复活大成功！已成功消耗 1 张补卡券！\n已将 ${getMobileDateDisplay(state.currentDateStr)} 的打卡完成率自动提升至达标水准。您的连续自律打卡 Streak 已重振旗鼓、完美接通！`);
 }
 
+function syncMobileStats(pct, frac, streak, best, total) {
+  if (DOM.mobileTodayPct) DOM.mobileTodayPct.innerText = `${pct}%`;
+  if (DOM.mobileTodayFrac) DOM.mobileTodayFrac.innerText = frac;
+  if (DOM.mobileProgressFill) DOM.mobileProgressFill.style.width = `${pct}%`;
+  if (DOM.mobileStreak) DOM.mobileStreak.innerText = `${streak} 天`;
+  if (DOM.mobileBest) DOM.mobileBest.innerText = `${best} 天`;
+  if (DOM.mobileTotal) DOM.mobileTotal.innerText = `${total} 天`;
+  if (DOM.mobileTickets) DOM.mobileTickets.innerText = `${state.ticketsCount} 张`;
+}
+
 function renderRadialProgress(habits) {
   // 今日完成度环形图永远基于【全部非归档习惯】，不受分类过滤器影响
   const allActive = habits; // habits 本身已是非归档列表（调用方已过滤）
@@ -1276,6 +1309,9 @@ function renderRadialProgress(habits) {
     DOM.todayPercentage.innerText = '0%';
     DOM.todayStatsFraction.innerText = '0 / 0';
     DOM.todayRadialFg.style.strokeDashoffset = '301.6';
+    if (DOM.mobileTodayPct) DOM.mobileTodayPct.innerText = '0%';
+    if (DOM.mobileTodayFrac) DOM.mobileTodayFrac.innerText = '0 / 0';
+    if (DOM.mobileProgressFill) DOM.mobileProgressFill.style.width = '0%';
     return;
   }
 
@@ -1289,6 +1325,10 @@ function renderRadialProgress(habits) {
   const perimeter = 2 * Math.PI * 48;
   const offset = perimeter - (completed / total) * perimeter;
   DOM.todayRadialFg.style.strokeDashoffset = offset;
+
+  if (DOM.mobileTodayPct) DOM.mobileTodayPct.innerText = `${percentage}%`;
+  if (DOM.mobileTodayFrac) DOM.mobileTodayFrac.innerText = `${completed}/${total}`;
+  if (DOM.mobileProgressFill) DOM.mobileProgressFill.style.width = `${percentage}%`;
 }
 
 // 14. CRUD Form Modals
