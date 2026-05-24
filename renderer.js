@@ -3473,6 +3473,11 @@ async function fetchAuthFromCloud(username, password) {
       const parsed = JSON.parse(raw);
       if (parsed.v === 2 && parsed.d) {
         const decrypted = await decryptData(password, parsed.d);
+        // 如果解密后还是加密前缀说明解密失败（密码错误）
+        if (typeof decrypted === 'string' && decrypted.startsWith(CRYPTO_PREFIX)) {
+          console.warn('云端认证数据解密失败（密码可能错误）');
+          return null;
+        }
         data = JSON.parse(decrypted);
       } else {
         data = parsed; // 兼容旧明文格式
@@ -3480,7 +3485,9 @@ async function fetchAuthFromCloud(username, password) {
     } catch {
       return null;
     }
-    if (data && data.username === username && data.passwordHash) {
+    // 用户名比较忽略大小写，兼容历史数据
+    if (data && data.passwordHash &&
+        data.username && data.username.toLowerCase() === username.toLowerCase()) {
       return data;
     }
     return null;
@@ -3598,8 +3605,8 @@ function setupAuth(mode) {
         }
 
         const hash = await hashPassword(password);
-        // 保存原始输入的名字作为昵称，但底层的校验和 Key 均使用统一小写
-        const authData = { username: usernameRaw, passwordHash: hash };
+        // authData 统一用小写存储，昵称保留原始大小写
+        const authData = { username, passwordHash: hash };
         localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
 
         // 上传加密认证信息到云端（失败不阻塞本地注册）
@@ -3657,17 +3664,36 @@ function setupAuth(mode) {
 
         // 本地没有 → 尝试从云端拉取（密码解密验证）
         if (!authData) {
-          // 1. 优先尝试以小写格式拉取，以匹配全新/统一小写的注册流程
+          let cloudFetchError = null; // 'not_found' | 'wrong_password' | 'network'
+          // 1. 优先尝试以小写格式拉取
           let cloudAuth = await fetchAuthFromCloud(username, password);
           // 2. 如果未找到且原始输入包含大小写，尝试以原始格式拉取以兼容历史账号
           if (!cloudAuth && usernameRaw !== username) {
             cloudAuth = await fetchAuthFromCloud(usernameRaw, password);
           }
-          
+
+          if (!cloudAuth) {
+            // 区分"账号不存在"和"密码错误"：检查云端key是否存在
+            const cloudExists = await checkCloudUsernameExists(username);
+            if (cloudExists) {
+              cloudFetchError = 'wrong_password';
+            } else if (usernameRaw !== username) {
+              const cloudExistsRaw = await checkCloudUsernameExists(usernameRaw);
+              if (cloudExistsRaw) cloudFetchError = 'wrong_password';
+            }
+          }
+
           if (cloudAuth) {
-            authData = { username: cloudAuth.username, passwordHash: cloudAuth.passwordHash };
+            // 统一用小写存储，兼容历史账号的大小写混合
+            authData = { username: cloudAuth.username.toLowerCase(), passwordHash: cloudAuth.passwordHash };
             cloudSyncToken = cloudAuth.syncToken || '';
             localStorage.setItem('zi_lu_auth', JSON.stringify(authData));
+          } else if (cloudFetchError === 'wrong_password') {
+            errorEl.textContent = '密码错误，请重试';
+            errorEl.style.display = 'block';
+            submitBtn.textContent = '登录';
+            submitBtn.disabled = false;
+            return;
           }
         }
 
