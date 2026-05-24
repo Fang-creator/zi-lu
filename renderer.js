@@ -2006,19 +2006,19 @@ function switchPage(page) {
     homeSections.forEach(el => el.style.display = 'none');
     if (diaryPage) { diaryPage.style.display = 'flex'; }
     if (socialPage) { socialPage.style.display = 'none'; }
-    if (statsCard) { statsCard.style.display = 'none'; }
+    if (statsCard) { statsCard.style.setProperty('display', 'none', 'important'); }
     renderDiaryPage();
   } else if (page === 'social') {
     homeSections.forEach(el => el.style.display = 'none');
     if (diaryPage) { diaryPage.style.display = 'none'; }
     if (socialPage) { socialPage.style.display = 'flex'; }
-    if (statsCard) { statsCard.style.display = 'none'; }
+    if (statsCard) { statsCard.style.setProperty('display', 'none', 'important'); }
     renderSocialPage();
   } else {
     homeSections.forEach(el => el.style.display = '');
     if (diaryPage) { diaryPage.style.display = 'none'; }
     if (socialPage) { socialPage.style.display = 'none'; }
-    if (statsCard) { statsCard.style.display = ''; }
+    if (statsCard) { statsCard.style.removeProperty('display'); }
   }
 }
 
