@@ -1117,10 +1117,7 @@ body {
     gap: 6px;
   }
 
-  /* 备份物理模块在手机端隐藏 */
-  .desktop-only-section {
-    display: none !important;
-  }
+  /* 备份模块在移动端仍显示，使用网页端 Blob 导出方案 */
 }
 
 /* 12. 动画效果 */

@@ -866,7 +866,7 @@ function setupEventListeners() {
     });
   });
 
-  // G. 物理备份导出导入 (Electron环境)
+  // G. 数据备份导出导入 (桌面端用系统对话框，移动端用 Blob/FileReader)
   if (isElectronEnv()) {
     DOM.btnExportDb.addEventListener('click', async () => {
       const dataToExport = { habits: state.habits, checkIns: state.checkIns };
@@ -893,8 +893,56 @@ function setupEventListeners() {
       }
     });
   } else {
-    // 手机浏览器中隐藏 Electron 本地备份按钮
-    DOM.desktopBackupSection.style.display = 'none';
+    // 网页/PWA 环境：用 Blob 下载和 FileReader 上传实现备份
+    DOM.btnExportDb.addEventListener('click', () => {
+      try {
+        const dataToExport = getDataToSave();
+        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zi-lu-backup-${formatDateToYYYYMMDD(new Date())}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showSocialToast('备份文件已下载到手机 📥');
+      } catch (err) {
+        alert(`导出失败！错误：${err.message}`);
+      }
+    });
+
+    DOM.btnImportDb.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (!data.habits || !data.checkIns) {
+            alert('无效的备份文件！必须包含 habits 和 checkIns 字段。');
+            return;
+          }
+          state.habits = data.habits;
+          state.checkIns = data.checkIns;
+          if (data.diaries) state.diaries = data.diaries;
+          if (data.syncToken) state.syncToken = data.syncToken;
+          if (data.friends) state.friends = data.friends;
+          if (data.couple) state.couple = data.couple;
+          if (data.nickname) state.nickname = data.nickname;
+          if (data.avatar) state.avatar = data.avatar;
+          await saveDatabase();
+          refreshUI();
+          showSocialToast('备份已成功导入合并！✨');
+        } catch (err) {
+          alert(`导入失败！文件格式错误：${err.message}`);
+        }
+      };
+      input.click();
+    });
   }
 
   // H. [NEW] 补卡券一键复活打卡事件绑定
@@ -1577,13 +1625,31 @@ function renderDotMatrix() {
   }
 }
 
-// 17. 提醒调度计时器 (iOS Notification standard + Desktop standard)
+// 17. 提醒调度计时器 (支持桌面端 + 移动端，包括后台恢复)
+let _lastReminderCheckTime = Date.now();
+
 function startReminderScheduler() {
-  setInterval(checkReminders, 60000); // 每一分钟
+  setInterval(checkReminders, 60000);
   checkReminders();
+
+  // 手机切回 App 时立即补检错过的提醒
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      const gapMin = (Date.now() - _lastReminderCheckTime) / 60000;
+      // 超过 2 分钟没检查，可能错过了提醒窗口
+      if (gapMin > 2) {
+        checkReminders();
+        // 如果离线太久，顺手同步一次
+        if (state.syncToken && state.autoSync) {
+          performCloudSyncPull();
+        }
+      }
+    }
+  });
 }
 
 function checkReminders() {
+  _lastReminderCheckTime = Date.now();
   const now = new Date();
   const todayStr = formatDateToYYYYMMDD(now);
   const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1594,28 +1660,33 @@ function checkReminders() {
   activeHabits.forEach(habit => {
     if (habit.reminderTime && habit.reminderTime === currentTimeStr && !checkedIds.includes(habit.id)) {
       const reminderKey = `${todayStr}-${habit.id}`;
-      
+
       if (!state.triggeredReminders[reminderKey]) {
         state.triggeredReminders[reminderKey] = true;
-        
+
         const title = `自律打卡提醒: ${habit.emoji} ${habit.name}`;
         const body = `提醒时间到了 (${habit.reminderTime})！今天这个习惯还没勾选打卡哦，快来加油完成吧！`;
 
         if (isElectronEnv()) {
-          // 调用 Electron 主进程系统通知
           window.electronAPI.showNotification(title, body);
         } else {
-          // 手机网页/PWA 环境调用 HTML5 Web Notification API
+          // 手机网页/PWA 环境：先尝试浏览器通知，失败则用页内 Toast
+          let notified = false;
           if ("Notification" in window) {
             if (Notification.permission === "granted") {
               new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/10008/10008892.png' });
+              notified = true;
             } else if (Notification.permission !== "denied") {
               Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
                   new Notification(title, { body: body });
                 }
-              });
+              }).catch(() => {});
             }
+          }
+          // 页内 Toast 兜底：即使通知权限未授予，用户也能看到提醒
+          if (!notified) {
+            showSocialToast(`${habit.emoji} ${habit.name} — 该打卡啦！⏰`);
           }
         }
       }
