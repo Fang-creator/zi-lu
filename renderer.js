@@ -3274,44 +3274,20 @@ function closePartnerDiaryViewer() {
 // ── 账号密码认证系统 ──
 const AUTH_SALT = 'ZL-AUTH-SALT-2024';
 
-async function _authDeriveKey(password, salt) {
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt']
-  );
-}
-
-function _ab2b64(buf) {
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
-
-function _b642ab(str) {
-  return Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer;
+function _ab2hex(buf) {
+  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
 async function hashPassword(password) {
-  if (!crypto.subtle) {
-    throw new Error('浏览器不支持安全加密，请使用 HTTPS 访问');
-  }
-  const salt = AUTH_SALT + '-' + password.length;
-  const key = await _authDeriveKey(password, salt);
-  const raw = await crypto.subtle.exportKey('raw', key);
-  return _ab2b64(raw);
+  if (!crypto.subtle) throw new Error('浏览器不支持安全加密，请使用 HTTPS 访问');
+  const enc = new TextEncoder();
+  const data = enc.encode(AUTH_SALT + ':' + password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return _ab2hex(hash);
 }
 
 async function verifyPassword(password, storedHash) {
-  const hash = await hashPassword(password);
-  return hash === storedHash;
+  return await hashPassword(password) === storedHash;
 }
 
 function setupAuth(mode) {
@@ -3405,7 +3381,7 @@ function setupAuth(mode) {
       } catch (err) {
         console.error('注册失败:', err);
         errorEl.style.color = '';
-        errorEl.textContent = '注册失败，请检查网络后重试';
+        errorEl.textContent = '注册失败: ' + (err.message || '未知错误，请刷新页面重试');
         errorEl.style.display = 'block';
         submitBtn.textContent = '注册';
         submitBtn.disabled = false;
