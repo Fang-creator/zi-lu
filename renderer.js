@@ -237,6 +237,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   // A. 加载底层数据
   await loadDatabase();
 
+  // A2. 首次使用 → 显示引导弹窗
+  if (!state.isOnboarded) {
+    setupOnboarding();
+    document.getElementById('onboarding-dialog').showModal();
+    return;
+  }
+
   // B. 如果配置了云同步，则立刻执行一次后台静默数据同步与合并
   if (state.syncToken) {
     DOM.syncCodeText.innerText = state.syncToken;
@@ -280,8 +287,9 @@ async function loadDatabase() {
         state.avatar = db.avatar || 'cow';
         state.friends = db.friends || [];
         state.couple = db.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 };
+        state.isOnboarded = db.isOnboarded !== undefined ? db.isOnboarded : true;
       } else {
-        initPresetsAndMockData();
+        initEmptyData();
         await saveDatabase();
       }
     } else {
@@ -303,14 +311,15 @@ async function loadDatabase() {
         state.avatar = db.avatar || 'cow';
         state.friends = db.friends || [];
         state.couple = db.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 };
+        state.isOnboarded = db.isOnboarded !== undefined ? db.isOnboarded : true;
       } else {
-        initPresetsAndMockData();
+        initEmptyData();
         saveLocalWebStorage();
       }
     }
   } catch (error) {
     console.error('加载本地数据库失败:', error);
-    initPresetsAndMockData();
+    initEmptyData();
   }
 }
 
@@ -347,7 +356,8 @@ function getDataToSave() {
     nickname: state.nickname,
     avatar: state.avatar,
     friends: state.friends,
-    couple: state.couple
+    couple: state.couple,
+    isOnboarded: state.isOnboarded
   };
 }
 
@@ -355,64 +365,13 @@ function saveLocalWebStorage() {
   localStorage.setItem('zi_lu_habits_db', JSON.stringify(getDataToSave()));
 }
 
-// 5. 习惯模版与 mock 数据生成器
-function initPresetsAndMockData() {
-  state.habits = [
-    {
-      id: 'p-run',
-      name: '晨跑 3公里',
-      emoji: '🏃‍♂️',
-      category: 'health',
-      reminderTime: '07:30',
-      archived: false,
-      createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString()
-    },
-    {
-      id: 'p-water',
-      name: '多喝水 2L',
-      emoji: '💧',
-      category: 'health',
-      reminderTime: '10:00',
-      archived: false,
-      createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString()
-    },
-    {
-      id: 'p-read',
-      name: '深度阅读 30分钟',
-      emoji: '📚',
-      category: 'learning',
-      reminderTime: '21:00',
-      archived: false,
-      createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString()
-    },
-    {
-      id: 'p-meditation',
-      name: '打坐禅修 10分钟',
-      emoji: '🧘',
-      category: 'mindset',
-      reminderTime: '22:00',
-      archived: false,
-      createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString()
-    }
-  ];
-
-  const habitsList = ['p-run', 'p-water', 'p-read', 'p-meditation'];
-  const today = new Date();
-  
-  // 初始化补卡券
-  state.ticketsCount = 1; // 首次赠送 1 张开启自律
+// 5. 空白数据初始化（首次使用）
+function initEmptyData() {
+  state.habits = [];
+  state.checkIns = {};
+  state.ticketsCount = 0;
   state.rewardedMilestones = [];
-
-  for (let i = 7; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    const dateStr = formatDateToYYYYMMDD(d);
-    
-    // 生成随机打卡数据：确保大部分天数能达到 50% 达标线（至少完成 2 个）
-    const numCompletions = Math.floor(Math.random() * 3) + 2; // 2, 3 or 4 completions
-    const shuffled = [...habitsList].sort(() => 0.5 - Math.random());
-    state.checkIns[dateStr] = shuffled.slice(0, numCompletions);
-  }
+  state.isOnboarded = false;
 }
 
 // 6. 云端数据同步引擎 (Cloud Sync Engine)
@@ -427,6 +386,7 @@ async function performCloudSyncPush() {
       avatar: state.avatar || 'cow',
       friends: state.friends || [],
       couple: state.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 },
+      isOnboarded: state.isOnboarded,
       lastUpdated: new Date().toISOString()
     };
 
@@ -474,6 +434,7 @@ async function performCloudSyncPull() {
       state.friends = cloudData.friends || state.friends || [];
       state.couple = cloudData.couple || state.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 };
       state.diaries = cloudData.diaries || state.diaries || {};
+      state.isOnboarded = cloudData.isOnboarded !== undefined ? cloudData.isOnboarded : (state.isOnboarded !== undefined ? state.isOnboarded : true);
       await saveDatabase();
       return true;
     }
@@ -3261,6 +3222,119 @@ function openPartnerDiaryViewer(dateStr, title, content, mood) {
 function closePartnerDiaryViewer() {
   const dialog = document.getElementById('partner-diary-dialog');
   if (dialog) dialog.close();
+}
+
+// ── 新用户引导流程 ──
+function setupOnboarding() {
+  // 预生成同步码
+  const randHex = crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const syncCode = 'SYNC-' + randHex;
+  const syncCodeEl = document.getElementById('onboarding-sync-code-text');
+  if (syncCodeEl) syncCodeEl.textContent = syncCode;
+
+  // 防止用户绕过引导关闭弹窗
+  const dialog = document.getElementById('onboarding-dialog');
+  if (dialog) {
+    dialog.addEventListener('cancel', (e) => e.preventDefault());
+  }
+
+  let currentStep = 0;
+  const steps = ['welcome', 'profile', 'theme', 'sync'];
+
+  function showStep(stepIndex) {
+    steps.forEach((s, i) => {
+      const el = document.getElementById('onboarding-step-' + s);
+      if (el) el.style.display = i === stepIndex ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.onboard-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === stepIndex);
+    });
+    currentStep = stepIndex;
+  }
+
+  function nextStep() {
+    if (currentStep < steps.length - 1) {
+      showStep(currentStep + 1);
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      showStep(currentStep - 1);
+    }
+  }
+
+  // 步骤 1 → 2
+  document.getElementById('btn-onboarding-start')?.addEventListener('click', nextStep);
+
+  // 步骤 2 的上下步
+  document.getElementById('btn-onboarding-back-profile')?.addEventListener('click', prevStep);
+  document.getElementById('btn-onboarding-next-profile')?.addEventListener('click', nextStep);
+
+  // 步骤 3 的上下步
+  document.getElementById('btn-onboarding-back-theme')?.addEventListener('click', prevStep);
+  document.getElementById('btn-onboarding-next-theme')?.addEventListener('click', nextStep);
+
+  // 步骤 4 的上下步
+  document.getElementById('btn-onboarding-back-sync')?.addEventListener('click', prevStep);
+
+  // 复制同步码
+  document.getElementById('btn-onboarding-copy-sync')?.addEventListener('click', () => {
+    const code = syncCodeEl?.textContent || '';
+    navigator.clipboard?.writeText(code).then(() => {
+      alert('同步码已复制到剪贴板！');
+    }).catch(() => {
+      prompt('请手动复制同步码：', code);
+    });
+  });
+
+  // 重新生成同步码
+  document.getElementById('btn-onboarding-regen-sync')?.addEventListener('click', () => {
+    const newRandHex = crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const newCode = 'SYNC-' + newRandHex;
+    if (syncCodeEl) syncCodeEl.textContent = newCode;
+  });
+
+  // 完成引导
+  async function finishOnboarding(skipSync) {
+    // 保存昵称
+    const nicknameInput = document.getElementById('onboarding-nickname-input');
+    state.nickname = nicknameInput?.value?.trim() || '自律冒险者';
+
+    // 保存头像
+    const avatarRadio = document.querySelector('input[name="onboarding-avatar"]:checked');
+    state.avatar = avatarRadio?.value || 'cow';
+
+    // 保存主题
+    const themeRadio = document.querySelector('input[name="onboarding-theme"]:checked');
+    state.uiTheme = themeRadio?.value || 'default';
+
+    // 保存同步码
+    if (!skipSync) {
+      state.syncToken = syncCodeEl?.textContent || syncCode;
+    }
+
+    state.isOnboarded = true;
+    await saveDatabase();
+
+    // 关闭弹窗
+    document.getElementById('onboarding-dialog')?.close();
+
+    // 渲染界面
+    if (state.syncToken) {
+      DOM.syncCodeText.innerText = state.syncToken;
+      DOM.syncCodeInput.value = state.syncToken;
+    }
+    applyCustomBackground();
+    applyCardTransmittance();
+    applyUITheme(state.uiTheme);
+    refreshUI();
+    startReminderScheduler();
+    startOnlineHeartbeat();
+  }
+
+  document.getElementById('btn-onboarding-finish')?.addEventListener('click', () => finishOnboarding(false));
+  document.getElementById('btn-onboarding-skip-sync')?.addEventListener('click', () => finishOnboarding(true));
 }
 
 function escapeJS(str) {

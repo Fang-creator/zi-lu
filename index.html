@@ -616,6 +616,169 @@
     </main>
   </div>
 
+  <!-- 0. 新用户引导欢迎弹窗 -->
+  <dialog class="modal glass onboarding-dialog" id="onboarding-dialog">
+    <div class="modal-content onboarding-content">
+      <!-- 步骤 1: 欢迎 -->
+      <div class="onboarding-step" id="onboarding-step-welcome">
+        <div class="onboarding-welcome-icon">
+          <i class="fa-solid fa-crown neon-glow"></i>
+        </div>
+        <h2 class="onboarding-title">欢迎来到自律打卡</h2>
+        <p class="onboarding-desc">记录每一天的坚持，见证每一个微小的改变。<br>让我们一起开启自律之旅吧！🌱</p>
+        <div class="onboarding-features">
+          <div class="onboarding-feature">
+            <span class="onboard-feat-icon">📋</span>
+            <span>自定义打卡习惯</span>
+          </div>
+          <div class="onboarding-feature">
+            <span class="onboard-feat-icon">📊</span>
+            <span>追踪每日完成度</span>
+          </div>
+          <div class="onboarding-feature">
+            <span class="onboard-feat-icon">☁️</span>
+            <span>云端同步多端使用</span>
+          </div>
+          <div class="onboarding-feature">
+            <span class="onboard-feat-icon">💑</span>
+            <span>与伴侣互相监督</span>
+          </div>
+        </div>
+        <button class="btn btn-primary onboarding-btn" id="btn-onboarding-start">开始设置</button>
+      </div>
+
+      <!-- 步骤 2: 个人信息 -->
+      <div class="onboarding-step" id="onboarding-step-profile" style="display:none;">
+        <h3 class="onboarding-step-title">设置你的个人档案</h3>
+        <div class="form-group">
+          <label for="onboarding-nickname-input">你的自律昵称</label>
+          <input type="text" id="onboarding-nickname-input" placeholder="起个温暖的昵称吧" maxlength="12" value="自律冒险者">
+        </div>
+        <div class="form-group">
+          <label>选择你的萌宠头像</label>
+          <div class="avatar-grid onboarding-avatar-grid">
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="cow" checked>
+              <span class="avatar-badge"><span class="avatar-emoji">🐮</span><small>快乐小牛</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="chick">
+              <span class="avatar-badge"><span class="avatar-emoji">🐤</span><small>胖胖小鸡</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="dog">
+              <span class="avatar-badge"><span class="avatar-emoji">🐶</span><small>小黄狗</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="cat">
+              <span class="avatar-badge"><span class="avatar-emoji">🐱</span><small>懒懒小猫</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="pig">
+              <span class="avatar-badge"><span class="avatar-emoji">🐷</span><small>粉红小猪</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="slime">
+              <span class="avatar-badge"><span class="avatar-emoji">💧</span><small>星光泥泥</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="spongebob">
+              <span class="avatar-badge"><span class="avatar-emoji">🧽</span><small>海绵宝宝</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="patrick">
+              <span class="avatar-badge"><span class="avatar-emoji">⭐️</span><small>派大星</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="squidward">
+              <span class="avatar-badge"><span class="avatar-emoji">🐙</span><small>章鱼哥</small></span>
+            </label>
+            <label class="avatar-option">
+              <input type="radio" name="onboarding-avatar" value="mrkrabs">
+              <span class="avatar-badge"><span class="avatar-emoji">🦀</span><small>谢老板</small></span>
+            </label>
+          </div>
+        </div>
+        <div class="onboarding-btns">
+          <button class="btn btn-secondary" id="btn-onboarding-back-profile">上一步</button>
+          <button class="btn btn-primary" id="btn-onboarding-next-profile">下一步</button>
+        </div>
+      </div>
+
+      <!-- 步骤 3: 选择主题 -->
+      <div class="onboarding-step" id="onboarding-step-theme" style="display:none;">
+        <h3 class="onboarding-step-title">选择你喜欢的主题风格</h3>
+        <p class="onboarding-step-sub">随时可以在设置中更换</p>
+        <div class="theme-switcher-row onboarding-themes" id="onboarding-theme-row">
+          <label class="theme-option" data-theme="default">
+            <input type="radio" name="onboarding-theme" value="default" checked>
+            <div class="theme-preview theme-preview-default">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-name">霓虹科技</span>
+          </label>
+          <label class="theme-option" data-theme="stardew">
+            <input type="radio" name="onboarding-theme" value="stardew">
+            <div class="theme-preview theme-preview-stardew">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-name">星露谷</span>
+          </label>
+          <label class="theme-option" data-theme="spongebob">
+            <input type="radio" name="onboarding-theme" value="spongebob">
+            <div class="theme-preview theme-preview-spongebob">
+              <div class="theme-preview-bar"></div>
+              <div class="theme-preview-dots"><span></span><span></span><span></span></div>
+            </div>
+            <span class="theme-name">海绵宝宝</span>
+          </label>
+        </div>
+        <div class="onboarding-btns">
+          <button class="btn btn-secondary" id="btn-onboarding-back-theme">上一步</button>
+          <button class="btn btn-primary" id="btn-onboarding-next-theme">下一步</button>
+        </div>
+      </div>
+
+      <!-- 步骤 4: 云同步设置 -->
+      <div class="onboarding-step" id="onboarding-step-sync" style="display:none;">
+        <h3 class="onboarding-step-title">开启云端同步</h3>
+        <p class="onboarding-step-sub">在手机和电脑上使用同一个同步码，数据实时互通</p>
+        <div class="onboarding-sync-box glass">
+          <div class="onboarding-sync-code-row">
+            <span class="onboarding-sync-label">你的专属同步码</span>
+            <strong class="onboarding-sync-code" id="onboarding-sync-code-text"></strong>
+          </div>
+          <div class="onboarding-sync-actions">
+            <button class="btn btn-secondary btn-sm" id="btn-onboarding-copy-sync">
+              <i class="fa-regular fa-copy"></i> 复制同步码
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-onboarding-regen-sync">
+              <i class="fa-solid fa-rotate"></i> 重新生成
+            </button>
+          </div>
+          <small style="color:var(--text-dim);display:block;margin-top:8px;">💡 在另一台设备上输入此同步码，即可自动合并两端数据</small>
+        </div>
+        <div class="onboarding-btns">
+          <button class="btn btn-secondary" id="btn-onboarding-back-sync">上一步</button>
+          <button class="btn btn-primary" id="btn-onboarding-finish">
+            <i class="fa-solid fa-rocket"></i> 开始自律之旅
+          </button>
+        </div>
+        <button class="btn btn-ghost onboarding-skip-btn" id="btn-onboarding-skip-sync">跳过，稍后设置</button>
+      </div>
+
+      <!-- 步骤指示器 -->
+      <div class="onboarding-steps-dots" id="onboarding-dots">
+        <span class="onboard-dot active" data-step="0"></span>
+        <span class="onboard-dot" data-step="1"></span>
+        <span class="onboard-dot" data-step="2"></span>
+        <span class="onboard-dot" data-step="3"></span>
+      </div>
+    </div>
+  </dialog>
+
   <!-- 3. 添加/编辑习惯模态弹窗 -->
   <dialog class="modal glass" id="habit-form-dialog">
     <div class="modal-content">
