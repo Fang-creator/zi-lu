@@ -442,6 +442,8 @@ async function performCloudSyncPush() {
       friends: state.friends || [],
       couple: state.couple || { isBound: false, partnerToken: '', partnerNickname: '', partnerAvatar: '', boundAt: 0 },
       isOnboarded: state.isOnboarded,
+      ticketsCount: state.ticketsCount || 0,
+      rewardedMilestones: state.rewardedMilestones || [],
       lastUpdated: new Date().toISOString()
     };
 
@@ -535,13 +537,31 @@ function formatLastActiveTime(isoString) {
   }
 }
 
-// ── 开启在线状态周期推送心跳 ──
+// ── 开启在线状态周期推送心跳（高阶双向静默云同步） ──
 function startOnlineHeartbeat() {
-  // 每 2 分钟发起一次后台轻量云端推送更新
+  // 每 2 分钟发起一次后台轻量云端双向同步，自动保持双端记录对齐，并实时拉取刷新情侣进度
   setInterval(async () => {
     if (state.syncToken && state.autoSync) {
-      console.log('[Online Status] 用户心跳数据同步中...');
-      await performCloudSyncPush();
+      console.log('[Online Sync] 正在进行后台云端双向数据对齐与伴侣动态拉取...');
+      try {
+        // 1. 先下拉合并最新云端数据，确保本地获得最新进度
+        const pulled = await performCloudSyncPull();
+        
+        // 2. 将本地最新的数据增量合并后，安全推送到云端服务器
+        await performCloudSyncPush();
+        
+        // 3. 如果当前处于已绑定伴侣状态，静默刷新伴侣大盘完成度
+        if (state.couple && state.couple.isBound) {
+          fetchPartnerCoupleProgress().catch(() => {});
+        }
+        
+        // 4. 云拉取成功后触发局部重绘，静默刷新 UI，让最新变化立现！
+        if (pulled) {
+          refreshUI();
+        }
+      } catch (err) {
+        console.warn('后台周期同步心跳失败:', err);
+      }
     }
   }, 120000);
 }
@@ -577,6 +597,10 @@ function mergeLocalAndCloudData(cloud) {
     const unionChecked = Array.from(new Set([...localChecked, ...cloudChecked]));
     state.checkIns[dateStr] = unionChecked;
   });
+
+  // 3. 合并补卡券数量与已领奖的打卡里程碑记录，防止因多端登录或赢取奖励时发生数据覆盖
+  state.ticketsCount = cloud.ticketsCount !== undefined ? Math.max(state.ticketsCount, cloud.ticketsCount) : state.ticketsCount;
+  state.rewardedMilestones = Array.from(new Set([...(state.rewardedMilestones || []), ...(cloud.rewardedMilestones || [])]));
 }
 
 // ── KVDB 加密数据拉取辅助函数 ──
