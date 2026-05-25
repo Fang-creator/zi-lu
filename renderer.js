@@ -284,7 +284,15 @@ async function startAppAfterAuth() {
   if (state.syncToken) {
     DOM.syncCodeText.innerText = state.syncToken;
     DOM.syncCodeInput.value = state.syncToken;
-    await performCloudSyncPull();
+    // 【性能优化】后台异步拉取云端同步，零延迟启动大盘，防止因 kvdb.io 连接缓慢导致首屏阻塞 3-4 秒！
+    performCloudSyncPull().then((success) => {
+      if (success) {
+        refreshUI();
+        console.log('Background cloud pull finished and UI refreshed successfully.');
+      }
+    }).catch(err => {
+      console.warn('Background sync pull failed:', err);
+    });
   }
 
   applyCustomBackground();
@@ -813,7 +821,15 @@ function setupEventListeners() {
     DOM.syncCodeText.innerText = randomCode;
     DOM.syncCodeInput.value = randomCode;
     await saveDatabase();
-    alert(`已生成云同步码：${randomCode}\n请复制保存此同步码！`);
+    
+    // 【核心改进】立即上传初始化数据到云端，避免另一半绑定时出现“不存在”错误！
+    alert('已成功在本地生成同步码，正在上传云端进行初始化注册，请稍候...');
+    try {
+      await performCloudSyncPush();
+      alert(`🎉 恭喜！云同步码已成功注册并初始化：\n${randomCode}\n\n请复制保存此同步码，并发送给您的另一半进行绑定！✨`);
+    } catch (err) {
+      alert(`⚠️ 同步码已生成：\n${randomCode}\n\n但上传到云端服务器初始化失败，可能是因为您当前的网络无法稳定连接到同步服务器。\n请确保网络通畅后，在“系统设置”中点击“手动云同步”按钮进行重试！`);
+    }
   });
 
   DOM.btnBindSync.addEventListener('click', async () => {
@@ -826,16 +842,22 @@ function setupEventListeners() {
     DOM.syncCodeText.innerText = token;
     
     // 绑定并立刻从云端拉取覆盖本地
-    alert('正在进行首次数据拉取与绑定，请稍候...');
+    alert('正在从云同步服务器拉取伴侣数据并进行绑定，请稍候...');
     const pulled = await performCloudSyncPull();
     if (pulled) {
       await saveDatabase();
       refreshUI();
-      alert('已成功绑定！云端习惯记录与自律大盘合并载入完毕。');
+      alert('🎉 绑定成功！已成功载入云端伴侣习惯及大盘数据！');
     } else {
-      // 云端未找到此 key，作为新 Key 绑定
-      await saveDatabase();
-      alert(`已成功创建并绑定同步码！您现在可以在手机端配置该同步码了。`);
+      // 云端未找到此 key，作为新 Key 绑定，并立刻推送到云端注册
+      alert('云端尚未发现此同步码的数据记录，正在为您尝试在云端初始化注册此同步码，请稍候...');
+      try {
+        await performCloudSyncPush();
+        await saveDatabase();
+        alert(`已成功创建并绑定同步码！您现在可以在手机端或另一台设备上直接使用该同步码了。✨`);
+      } catch (err) {
+        alert('⚠️ 绑定同步码成功，但由于网络连接超时，未能将其在云端初始化。请稍后点击“手动云同步”按钮重试！');
+      }
     }
   });
 
