@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zi-lu-habits-v3';
+const CACHE_NAME = 'zi-lu-habits-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -34,36 +34,38 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 拦截请求：网络优先，降级到缓存
+// 拦截请求：高阶 PWA 缓存策略 - Stale-While-Revalidate (缓存优先且后台静默更新)
 self.addEventListener('fetch', (e) => {
-  // 排除第三方 API、CDN 以及 KV 数据库请求
+  // 排除第三方 API 以及 KV 数据库请求，不拦截、不缓存
   if (e.request.url.includes('kvdb.io') || e.request.url.includes('api.')) {
     return;
   }
   
   e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        // 请求成功，克隆一份存入缓存（除了非 HTTP/HTTPS 协议）
-        if (response.status === 200 && e.request.url.startsWith('http')) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // 请求失败（离线），尝试匹配缓存
-        return caches.match(e.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
+    caches.match(e.request).then((cachedResponse) => {
+      // 1. 发起后台网络请求以更新缓存 (Stale-While-Revalidate)
+      const networkFetch = fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200 && e.request.url.startsWith('http')) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(e.request, responseClone);
+            });
           }
-          // 如果缓存也未匹配，且是页面请求，返回主页
-          if (e.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
+          return networkResponse;
+        })
+        .catch((err) => {
+          console.log('[SW Fetch] Background fetch failed (offline):', err);
         });
-      })
+
+      // 2. 如果缓存中存在资源，则【立刻返回】缓存（实现 < 50ms 的闪电瞬间加载！）；
+      //    如果缓存不存在（如首次加载），则返回后台请求 Promise。
+      return cachedResponse || networkFetch;
+    }).catch(() => {
+      // 容错降级：如果匹配和网络全部失败且是页面跳转，降级返回主页缓存
+      if (e.request.mode === 'navigate') {
+        return caches.match('./index.html');
+      }
+    })
   );
 });

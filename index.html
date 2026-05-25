@@ -12,16 +12,24 @@
   <meta name="apple-mobile-web-app-title" content="自律打卡">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10008/10008892.png">
 
-  <!-- Google Fonts: Outfit & Inter -->
+  <!-- DNS Prefetch & Preconnect for High-Speed CDN DNS Warmup -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+  <!-- Google Fonts: Outfit & Inter (Asynchronous Load for 0-Block High LCP Performance) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
   
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FontAwesome Icons (Asynchronous Load to Prevent Render Blocking) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
   
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js CDN (Deferred Load for Parallel Performance) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="styles.css">
