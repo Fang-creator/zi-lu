@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zi-lu-habits-v6';
+const CACHE_NAME = 'zi-lu-habits-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSETS = [
   './renderer.js',
   './manifest.json',
   './assets/footer_decor.mp4',
+  './assets/footer_decor_poster.jpg',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Press+Start+2P&display=swap'
