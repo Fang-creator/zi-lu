@@ -1145,7 +1145,19 @@ body {
     height: 100vh;
     gap: 12px;
     overflow-y: auto; /* 仅主框架整体支持滚动，但图表和列表都有自己合理的排布 */
+    display: flex;
+    flex-direction: column;
   }
+
+  /* 🚨 移动端任务栏（打卡清单）上移核心修复 */
+  .mobile-header { order: 1; }
+  .mobile-stats-card { order: 2; }
+  .spongebob-home-banner { order: 3; }
+  .bottom-checklist-section { order: 4; } /* 打卡清单挪至最上方！ */
+  .top-chart-section { order: 5; } /* 图表挪至下方 */
+  .review-panel-section { order: 6; } /* 复盘面板挪至下方 */
+  .bottom-analytics-section { order: 7; } /* 热力图 */
+  .home-footer-decor { order: 8; } /* 底部装饰视频 */
 
   /* 手机顶部折线图固定 */
   .top-chart-section {
@@ -5465,6 +5477,34 @@ body.theme-spongebob .home-footer-decor {
 
 body.theme-spongebob .footer-decor-video {
   border-radius: 18px !important;
+}
+
+/* ==========================================================================
+   🎯 已完成任务整体变灰划掉与轻微缩水效果
+   ========================================================================== */
+.habit-card.checked {
+  opacity: 0.52 !important; /* 整体灰度变淡 */
+  filter: grayscale(0.65) !important; /* 变灰效果，符合已完成的高级暗调 */
+  transform: scale(0.975); /* 轻微收缩，营造归位的高级质感 */
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.habit-card.checked:hover {
+  transform: scale(0.975) !important; /* 完成状态下限制过度缩放 */
+  opacity: 0.65 !important;
+}
+
+/* 🍎 苹果触感震动同款物理弹性弹跳动画 */
+@keyframes apple-spring-bounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.08); }
+  50% { transform: scale(0.94); }
+  75% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.spring-bounce {
+  animation: apple-spring-bounce 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.4) !important;
 }
 
 

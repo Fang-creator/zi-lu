@@ -1183,6 +1183,15 @@ function renderChecklist(habits) {
 
   const checkedIds = state.checkIns[state.currentDateStr] || [];
 
+  // 🚨 核心特性：将已打卡完成的习惯自动排序并移至列表最底端
+  filteredHabits.sort((a, b) => {
+    const isCheckedA = checkedIds.includes(a.id);
+    const isCheckedB = checkedIds.includes(b.id);
+    if (isCheckedA && !isCheckedB) return 1;   // a已完成，b未完成 -> a往后排
+    if (!isCheckedA && isCheckedB) return -1;  // a未完成，b已完成 -> a往前排
+    return 0; // 相同状态下保持原有创建顺序
+  });
+
   filteredHabits.forEach(habit => {
     const isChecked = checkedIds.includes(habit.id);
     
@@ -1243,16 +1252,43 @@ function renderChecklist(habits) {
   });
 }
 
+// 🍎 苹果 iOS Taptic Engine 物理轻微触感震动反馈
+function triggerHapticFeedback() {
+  if (navigator.vibrate) {
+    try {
+      // 15ms 轻微物理回弹感，完全契合苹果 Taptic 规范
+      navigator.vibrate(15);
+    } catch (e) {
+      console.warn('[Haptics] vibration blocked:', e);
+    }
+  }
+}
+
 // 处理打卡勾选
 async function handleCheckinToggle(habitId, isChecked) {
   const currentList = state.checkIns[state.currentDateStr] || [];
+  
   if (isChecked) {
     if (!currentList.includes(habitId)) currentList.push(habitId);
-    document.getElementById(`habit-card-${habitId}`).classList.add('checked');
+    
+    // 物理回弹震动
+    triggerHapticFeedback();
+    
+    const card = document.getElementById(`habit-card-${habitId}`);
+    if (card) {
+      card.classList.add('checked');
+      card.classList.add('spring-bounce');
+      // 动画结束后移除类，以便下次触发
+      setTimeout(() => card.classList.remove('spring-bounce'), 450);
+    }
   } else {
     const index = currentList.indexOf(habitId);
     if (index > -1) currentList.splice(index, 1);
-    document.getElementById(`habit-card-${habitId}`).classList.remove('checked');
+    
+    const card = document.getElementById(`habit-card-${habitId}`);
+    if (card) {
+      card.classList.remove('checked');
+    }
   }
 
   state.checkIns[state.currentDateStr] = currentList;
@@ -1260,6 +1296,12 @@ async function handleCheckinToggle(habitId, isChecked) {
   // 核心：每次打卡保存后，除了写入本地 DB，还需立刻检测是否达成了连续 7 天倍数连续打卡的奖励条件！
   await saveDatabase();
   await check7DayMilestoneReward();
+
+  // 延时 480ms (等苹果物理回弹动画优雅收尾后)，平滑重绘任务列表，实现自动落底
+  setTimeout(() => {
+    const freshHabits = getEligibleHabits(state.currentDateStr);
+    renderChecklist(freshHabits);
+  }, 480);
 
   const activeHabits = getEligibleHabits(state.currentDateStr);
   renderRadialProgress(activeHabits);

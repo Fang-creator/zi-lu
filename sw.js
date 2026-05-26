@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zi-lu-habits-v7';
+const CACHE_NAME = 'zi-lu-habits-v8';
 const ASSETS = [
   './',
   './index.html',
