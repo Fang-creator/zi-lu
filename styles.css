@@ -5423,6 +5423,7 @@ body.theme-spongebob .online-status-text {
   transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
   cursor: pointer;
   z-index: 10;
+  flex-shrink: 0; /* 🚨 核心修复：防止在 flex 列容器布局下被纵向压缩挤压 */
 }
 
 .home-footer-decor:hover {
@@ -5434,7 +5435,7 @@ body.theme-spongebob .online-status-text {
 
 .footer-decor-video {
   width: 100%;
-  height: auto;
+  aspect-ratio: 16 / 9; /* 🚨 核心修复：显式强制 16:9 比例，防止元数据加载前高度坍塌 */
   border-radius: 14px;
   display: block;
   object-fit: cover;
