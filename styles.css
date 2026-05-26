@@ -5404,4 +5404,67 @@ body.theme-spongebob .online-status-text {
   color: #0b4e6a !important; /* 深蓝色 */
 }
 
+/* ==========================================================================
+   🏠 主页底部超清视频装饰贴纸 (Footer Video Decor)
+   ========================================================================== */
+.home-footer-decor {
+  max-width: 480px;
+  width: 100%;
+  margin: 40px auto 55px auto; /* 顶部距离大盘 40px，底部留出 55px 的完美优雅空白间距 */
+  padding: 8px;
+  border-radius: 20px;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.home-footer-decor:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 
+    0 22px 48px rgba(0, 0, 0, 0.45),
+    inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.footer-decor-video {
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  display: block;
+  object-fit: cover;
+  pointer-events: none; /* 防止手机端长按或点击视频弹出播放控件 */
+}
+
+/* 🌾 星露谷主题配色微调 */
+body.theme-stardew .home-footer-decor {
+  background: #f7e1b5 !important; /* 羊皮纸色 */
+  border: 3px solid #3c1f0f !important;
+  box-shadow: 0 6px 0 #1a0f07, 0 0 0 3px #b57a3d !important;
+  border-radius: 0px !important;
+}
+
+body.theme-stardew .footer-decor-video {
+  border-radius: 0px !important;
+  border: 2px solid #3c1f0f;
+}
+
+/* 🧽 海绵宝宝主题配色微调 */
+body.theme-spongebob .home-footer-decor {
+  background: rgba(255, 213, 79, 0.25) !important; /* 菠萝屋嫩黄毛玻璃 */
+  border: 3px solid #ff8fa3 !important; /* 派大星嫩粉边框 */
+  box-shadow: 0 8px 24px rgba(255, 143, 163, 0.3) !important;
+  border-radius: 24px !important;
+}
+
+body.theme-spongebob .footer-decor-video {
+  border-radius: 18px !important;
+}
+
+
 

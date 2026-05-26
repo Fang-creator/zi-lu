@@ -1,10 +1,11 @@
-const CACHE_NAME = 'zi-lu-habits-v4';
+const CACHE_NAME = 'zi-lu-habits-v5';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './renderer.js',
   './manifest.json',
+  './assets/footer_decor.mp4',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Press+Start+2P&display=swap'

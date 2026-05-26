@@ -2060,7 +2060,7 @@ function isToday(dateStr) {
 function switchPage(page) {
   state.currentPage = page;
   const homeSections = document.querySelectorAll(
-    '.top-chart-section, .review-panel-section, .bottom-checklist-section, .bottom-analytics-section'
+    '.top-chart-section, .review-panel-section, .bottom-checklist-section, .bottom-analytics-section, .home-footer-decor'
   );
   const diaryPage = DiaryDOM.page();
   const socialPage = document.getElementById('social-page');
