@@ -1154,6 +1154,8 @@ body {
   .mobile-stats-card { order: 2; }
   .spongebob-home-banner { order: 3; }
   .bottom-checklist-section { order: 4; } /* 打卡清单挪至最上方！ */
+  .diary-page { order: 4; } /* 日记页在手机端处于打卡清单同等顺位，保证标题栏在最上方 */
+  .social-page { order: 4; } /* 社交页在手机端处于打卡清单同等顺位，保证标题栏在最上方 */
   .top-chart-section { order: 5; } /* 图表挪至下方 */
   .review-panel-section { order: 6; } /* 复盘面板挪至下方 */
   .bottom-analytics-section { order: 7; } /* 热力图 */
