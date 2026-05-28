@@ -164,40 +164,6 @@ async function decryptData(token, payload) {
   return payload; // 兼容旧明文数据
 }
 
-function generateClientId(prefix) {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
-function copyTextToClipboard(text) {
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-    return navigator.clipboard.writeText(text);
-  }
-
-  return new Promise((resolve, reject) => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    textarea.style.top = '0';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-
-    try {
-      const copied = document.execCommand('copy');
-      document.body.removeChild(textarea);
-      copied ? resolve() : reject(new Error('execCommand copy failed'));
-    } catch (error) {
-      document.body.removeChild(textarea);
-      reject(error);
-    }
-  });
-}
-
 // 2. DOM 元素缓存
 const DOM = {
   welcomeGreeting: document.getElementById('welcome-greeting'),
@@ -2081,7 +2047,7 @@ ${analysis.coachEssay}
 ----------------------------------------
 ✨ 跟我一起开启双端游戏化自律打卡，重塑卓越自我！✨`;
 
-  copyTextToClipboard(shareText).then(() => {
+  navigator.clipboard.writeText(shareText).then(() => {
     alert('✨ 自律成就报告已完美复制到您的剪贴板！\n您可以直接去微信/朋友圈粘贴分享，向朋友展示您的自律成果啦！');
   }).catch(err => {
     alert('复制失败！请手动选中文字复制。');
@@ -2634,9 +2600,8 @@ function copySocialToken() {
     showSocialToast('请先前往系统设置生成云同步码哦！💡');
     return;
   }
-  copyTextToClipboard(state.syncToken)
-    .then(() => showSocialToast('同步码已复制到剪贴板，快去发给好友吧 📋'))
-    .catch(() => showSocialToast('复制失败，请手动长按选择同步码复制 ⚠️'));
+  navigator.clipboard.writeText(state.syncToken);
+  showSocialToast('同步码已复制到剪贴板，快去发给好友吧 📋');
 }
 
 // ── 添加好友 ──
@@ -3162,7 +3127,7 @@ async function sendChatMessage() {
   const chatId = getSharedChatId(state.syncToken, activeChatToken);
 
   const newMsg = {
-    id: generateClientId('msg'),
+    id: crypto.randomUUID ? crypto.randomUUID() : `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     sender: state.syncToken,
     senderName: state.nickname || '自律冒险者',
     senderAvatar: state.avatar || 'cow',
@@ -3434,5 +3399,7 @@ function escapeJS(str) {
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r');
 }
+
+
 
 

@@ -1,9 +1,9 @@
-const CACHE_NAME = 'zi-lu-habits-v10';
+const CACHE_NAME = 'zi-lu-habits-v9';
 const ASSETS = [
   './',
   './index.html',
   './styles.css?v=8',
-  './renderer.js?v=9',
+  './renderer.js?v=8',
   './manifest.json',
   './assets/footer_decor.mp4',
   './assets/footer_decor_poster.jpg',
